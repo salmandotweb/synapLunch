@@ -1,4 +1,4 @@
-import { FiHome } from "react-icons/fi";
+import { FiHome, FiSettings } from "react-icons/fi";
 
 export const actions = [
   {
@@ -9,5 +9,14 @@ export const actions = [
     perform: () => (window.location.pathname = "/"),
     section: "Navigation",
     icon: FiHome({ size: "1rem" }),
+  },
+  {
+    id: "settings",
+    name: "Settings",
+    shortcut: ["s"],
+    keywords: "settings",
+    perform: () => (window.location.pathname = "/settings"),
+    section: "Navigation",
+    icon: FiSettings({ size: "1rem" }),
   },
 ];

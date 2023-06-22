@@ -2,13 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useKBar } from "kbar";
 import { useTheme } from "next-themes";
-import { FiCommand, FiHome, FiMoon, FiSun } from "react-icons/fi";
+import { FiCommand, FiHome, FiMoon, FiSettings, FiSun } from "react-icons/fi";
 
 const NavbarItems = [
   {
     name: "Home",
     slug: "/",
     icon: FiHome,
+  },
+  {
+    name: "Settings",
+    slug: "/settings",
+    icon: FiSettings,
   },
 ];
 
