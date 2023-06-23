@@ -14,57 +14,91 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-enum PostCategory {
-    BUSINESS
-    DESIGN
-    ENGINEERING
-}
-
-model Post {
-    id       String       @id @default(cuid())
-    title    String
-    body     String
-    category PostCategory
-
-    authorId  String
-    author    User     @relation(fields: [authorId], references: [id])
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Session {
+  id            String    @id @default(cuid())
+  sessionToken  String    @unique
+  userId        String
+  expires       DateTime
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String    @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?   @db.Text
+  access_token      String?   @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?   @db.Text
+  session_state     String?
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
-}
-
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String
-    email         String    @unique
-    emailVerified DateTime?
-    image         String
-    accounts      Account[]
-    sessions      Session[]
-    Post          Post[]
+  id              String         @id @default(cuid())
+  name            String
+  email           String         @unique
+  emailVerified   DateTime?
+  image           String
+  accounts        Account[]
+  sessions        Session[]
+  companies       Company[]
+  members          Member[]
+  createdAt       DateTime       @default(now())
+}
+
+model Company {
+  id              String         @id @default(cuid())
+  name            String
+  email           String     
+  owner           User           @relation(fields: [ownerId], references: [id])
+  ownerId         String
+  userId          String
+  teams            Team[]
+  topups           Topup[]
+  createdAt       DateTime       @default(now())
+}
+
+model Team {
+  id              String         @id @default(cuid())
+  name            String
+  company         Company        @relation(fields: [companyId], references: [id])
+  companyId       String
+  members          Member[]
+  createdAt       DateTime       @default(now())
+}
+
+model Member {
+  id              String         @id @default(cuid())
+  user            User           @relation(fields: [userId], references: [id])
+  userId          String
+  team            Team           @relation(fields: [teamId], references: [id])
+  teamId          String
+  designation     String
+  cashDeposits     CashDeposit[]
+  createdAt       DateTime       @default(now())
+}
+
+model Topup {
+  id              String         @id @default(cuid())
+  company         Company        @relation(fields: [companyId], references: [id])
+  companyId       String
+  date            DateTime
+  amount          Int
+  createdAt       DateTime       @default(now())
+}
+
+model CashDeposit {
+  id              String         @id @default(cuid())
+  member          Member         @relation(fields: [memberId], references: [id])
+  memberId        String
+  date            DateTime
+  amount          Int
+  createdAt       DateTime       @default(now())
 }

@@ -1,11 +1,23 @@
-import { type NextPage } from "next";
+import { GetServerSidePropsContext, type NextPage } from "next";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 
 import { Overview } from "~/components/Overview";
 import Layout from "~/layout";
 import { Avatar, AvatarFallback, AvatarImage } from "~/ui/avatar";
+import { Button } from "~/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/ui/dialog";
+import { Input } from "~/ui/input";
+import { Label } from "~/ui/label";
 
 const Home: NextPage = () => {
   const session = useSession();
@@ -92,6 +104,46 @@ const Home: NextPage = () => {
             </div>
 
             <Overview />
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Edit Profile</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit profile</DialogTitle>
+                  <DialogDescription>
+                    Make changes to your profile here. Click save when you're
+                    done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value="Pedro Duarte"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="username" className="text-right">
+                      Username
+                    </Label>
+                    <Input
+                      id="username"
+                      value="@peduarte"
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Save changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </section>
         </div>
       </Layout>
@@ -100,3 +152,20 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {},
+  };
+}

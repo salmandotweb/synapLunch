@@ -1,4 +1,5 @@
-import { Metadata } from "next";
+import { GetServerSidePropsContext, Metadata } from "next";
+import { getSession } from "next-auth/react";
 
 import { UserAuthForm } from "~/components/user-auth-form";
 
@@ -15,4 +16,21 @@ export default function AuthenticationPage() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getSession(context);
+
+  if (session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {},
+  };
 }

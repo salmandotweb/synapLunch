@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useKBar } from "kbar";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
-import { FiCommand, FiHome, FiMoon, FiSettings, FiSun } from "react-icons/fi";
+import {
+  FiCommand,
+  FiHome,
+  FiLogIn,
+  FiLogOut,
+  FiMoon,
+  FiSettings,
+  FiSun,
+} from "react-icons/fi";
 
 const NavbarItems = [
   {
@@ -19,6 +28,8 @@ const NavbarItems = [
 
 export default function NavBar({ path }: { path: string }) {
   const router = useRouter();
+  const session = useSession();
+  const isLoggedIn = !!session.data;
   const { theme, setTheme } = useTheme();
   const { query } = useKBar();
   const [mounted, setMounted] = useState(false);
@@ -104,13 +115,65 @@ export default function NavBar({ path }: { path: string }) {
         <div className="flex flex-col gap-4">
           <button
             className="flex w-full items-center justify-center rounded bg-zinc-700 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl dark:bg-zinc-800 dark:hover:bg-zinc-700"
-            //   onClick={() => router.push(item.slug)}
             onClick={query.toggle}
           >
             <div className="p-2">
               <FiCommand size="1rem" className="text-zinc-100" />
             </div>
           </button>
+          {isLoggedIn ? (
+            <button
+              className="flex w-full items-center justify-center rounded bg-zinc-700 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl dark:bg-zinc-800 dark:hover:bg-zinc-700"
+              onClick={() => {
+                signOut();
+              }}
+              onMouseLeave={() => {
+                const temp = [...tooltipVisibility];
+                temp[NavbarItems.length + 1] = false;
+                setTooltipVisibility(temp);
+              }}
+              onMouseEnter={() => {
+                const temp = [...tooltipVisibility];
+                temp[NavbarItems.length + 1] = true;
+                setTooltipVisibility(temp);
+              }}
+            >
+              <div className="p-2">
+                <FiLogOut size="1rem" className="text-zinc-100" />
+              </div>
+              {tooltipVisibility[NavbarItems.length + 1] && (
+                <span className="absolute left-10 whitespace-nowrap rounded bg-zinc-800 p-[0.62rem] text-[0.75rem] leading-none text-zinc-200 shadow-xl dark:bg-zinc-700">
+                  Sign Out
+                </span>
+              )}
+            </button>
+          ) : (
+            <button
+              className="flex w-full items-center justify-center rounded bg-zinc-700 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl dark:bg-zinc-800 dark:hover:bg-zinc-700"
+              onClick={() => {
+                signIn();
+              }}
+              onMouseLeave={() => {
+                const temp = [...tooltipVisibility];
+                temp[NavbarItems.length + 1] = false;
+                setTooltipVisibility(temp);
+              }}
+              onMouseEnter={() => {
+                const temp = [...tooltipVisibility];
+                temp[NavbarItems.length + 1] = true;
+                setTooltipVisibility(temp);
+              }}
+            >
+              <div className="p-2">
+                <FiLogIn size="1rem" className="text-zinc-100" />
+              </div>
+              {tooltipVisibility[NavbarItems.length + 1] && (
+                <span className="absolute left-10 whitespace-nowrap rounded bg-zinc-800 p-[0.62rem] text-[0.75rem] leading-none text-zinc-200 shadow-xl dark:bg-zinc-700">
+                  Sign In
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
       <div className="mt-4 h-full border-r-2 border-zinc-500 dark:border-zinc-800"></div>
