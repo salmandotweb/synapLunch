@@ -21,7 +21,8 @@ const NavbarItems = [
   },
   {
     name: "Settings",
-    slug: "/settings",
+    slug: "/settings/profile",
+    nestedSlug: "/settings/company",
     icon: FiSettings,
   },
 ];
@@ -58,7 +59,7 @@ export default function NavBar({ path }: { path: string }) {
         {NavbarItems.map((item, index) => {
           return (
             <div key={item.slug}>
-              {path === item.slug ? (
+              {path === item.slug || path === item.nestedSlug ? (
                 <button
                   key={index}
                   className="relative flex w-full items-center justify-center rounded bg-zinc-800 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl focus:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700"

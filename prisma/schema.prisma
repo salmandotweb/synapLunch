@@ -46,59 +46,76 @@ model User {
   email           String         @unique
   emailVerified   DateTime?
   image           String
+  role            String         @default("user")      
   accounts        Account[]
   sessions        Session[]
-  companies       Company[]
-  members          Member[]
+  members         Member[]
   createdAt       DateTime       @default(now())
+  ownerOf         Company[]      @relation("OwnerOf")
 }
 
 model Company {
   id              String         @id @default(cuid())
   name            String
-  email           String     
-  owner           User           @relation(fields: [ownerId], references: [id])
+  email          String
+  description     String?
+  logo            String?
+  website         String?
   ownerId         String
-  userId          String
-  teams            Team[]
-  topups           Topup[]
+  urls            String[]      @default([])
   createdAt       DateTime       @default(now())
-}
-
-model Team {
-  id              String         @id @default(cuid())
-  name            String
-  company         Company        @relation(fields: [companyId], references: [id])
-  companyId       String
-  members          Member[]
-  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  topups          Topup[]
+  members         Member[]
+  foodSummaries   FoodSummary[]
+  owner           User           @relation("OwnerOf", fields: [ownerId], references: [id])
 }
 
 model Member {
   id              String         @id @default(cuid())
-  user            User           @relation(fields: [userId], references: [id])
-  userId          String
-  team            Team           @relation(fields: [teamId], references: [id])
-  teamId          String
+  name            String
+  email           String
   designation     String
-  cashDeposits     CashDeposit[]
+  role            String
+  user            User           @relation(fields: [userId], references: [id])
+  company         Company        @relation(fields: [companyId], references: [id])
+  userId          String
+  companyId       String
+  deposits        Deposit[]
   createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Topup {
   id              String         @id @default(cuid())
+  date            DateTime  
+  amount          Int
   company         Company        @relation(fields: [companyId], references: [id])
   companyId       String
-  date            DateTime
-  amount          Int
   createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
-model CashDeposit {
+model Deposit {
   id              String         @id @default(cuid())
+  date            DateTime  
+  amount          Int
   member          Member         @relation(fields: [memberId], references: [id])
   memberId        String
-  date            DateTime
-  amount          Int
   createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model FoodSummary {
+  id              String         @id @default(cuid())
+  date            DateTime  
+  numberOfPeople  Int
+  totalBreads     Int
+  totalCurries    Int
+  receipt         String
+  totalAmount     Int
+  company         Company        @relation(fields: [companyId], references: [id])
+  companyId       String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }

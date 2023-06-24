@@ -15,7 +15,7 @@ export const actions = [
     name: "Settings",
     shortcut: ["s"],
     keywords: "settings",
-    perform: () => (window.location.pathname = "/settings"),
+    perform: () => (window.location.pathname = "/settings/profile"),
     section: "Navigation",
     icon: FiSettings({ size: "1rem" }),
   },
