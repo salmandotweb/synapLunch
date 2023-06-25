@@ -139,6 +139,8 @@ export default function NavBar({ path }: { path: string }) {
               className="flex w-full items-center justify-center rounded bg-zinc-700 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl dark:bg-zinc-800 dark:hover:bg-zinc-700"
               onClick={() => {
                 signOut();
+
+                router.push("/auth/signin");
               }}
               onMouseLeave={() => {
                 const temp = [...tooltipVisibility];

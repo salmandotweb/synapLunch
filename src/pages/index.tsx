@@ -1,23 +1,11 @@
-import { GetServerSidePropsContext, type NextPage } from "next";
+import { type NextPage } from "next";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
-import { getSession, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 import { Overview } from "~/components/Overview";
 import Layout from "~/layout";
 import { Avatar, AvatarFallback, AvatarImage } from "~/ui/avatar";
-import { Button } from "~/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/ui/dialog";
-import { Input } from "~/ui/input";
-import { Label } from "~/ui/label";
 
 const Home: NextPage = () => {
   const session = useSession();
@@ -112,20 +100,3 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getSession(context);
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/auth/signin",
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: {},
-  };
-}
