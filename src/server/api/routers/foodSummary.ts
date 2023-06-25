@@ -18,7 +18,13 @@ export const foodSummaryRouter = createTRPCRouter({
     }),
 
   createFoodSummary: protectedProcedure
-    .input(z.object({ companyId: z.string(), ...foodFormSchema.shape }))
+    .input(
+      z.object({
+        companyId: z.string(),
+        membersDidNotBringFood: z.array(z.string()),
+        ...foodFormSchema.shape,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       return ctx.prisma.foodSummary.create({
         data: {
@@ -34,7 +40,16 @@ export const foodSummaryRouter = createTRPCRouter({
           },
           membersBroughtFood: {
             connect: input.membersBroughtFood.map((memberId) => {
-              return { id: memberId };
+              return {
+                id: memberId,
+              };
+            }),
+          },
+          membersDidntBringFood: {
+            connect: input.membersDidNotBringFood.map((memberId) => {
+              return {
+                id: memberId,
+              };
             }),
           },
         },

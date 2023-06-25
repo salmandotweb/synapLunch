@@ -232,7 +232,9 @@ const SetupCompany: FC = ({}) => {
             Add URL
           </Button>
         </div>
-        <Button type="submit">Create</Button>
+        <Button type="submit" disabled={createCompany.isLoading}>
+          Create
+        </Button>
       </form>
     </Form>
   );

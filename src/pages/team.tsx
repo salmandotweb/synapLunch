@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Member } from "@prisma/client";
 import { ButtonIcon } from "@radix-ui/react-icons";
 import { useForm } from "react-hook-form";
-import { AiOutlineEdit } from "react-icons/ai";
+import { AiOutlineEdit, AiOutlineTeam } from "react-icons/ai";
 import { RiAddFill } from "react-icons/ri";
 import { z } from "zod";
 
@@ -145,7 +145,7 @@ const team: FC = ({}) => {
     });
   }
 
-  const deletePost = api.member.deleteMember.useMutation({
+  const deleteMember = api.member.deleteMember.useMutation({
     onSettled: async () => {
       await utils.member.invalidate();
     },
@@ -197,8 +197,10 @@ const team: FC = ({}) => {
                 setSelectedMember(undefined);
                 setMemberOpenModal(true);
               }}
+              variant="outline"
+              size="sm"
             >
-              <RiAddFill />
+              <AiOutlineTeam />
               Add Member
             </Button>
           </div>
@@ -219,7 +221,7 @@ const team: FC = ({}) => {
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="space-y-2">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-start gap-2">
                       <h6 className="text-sm font-semibold leading-none text-zinc-900 dark:text-zinc-200">
                         Email
                       </h6>
@@ -227,7 +229,7 @@ const team: FC = ({}) => {
                         {member.email}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-start gap-2">
                       <h6 className="text-sm font-semibold leading-none text-zinc-900 dark:text-zinc-200">
                         Designation
                       </h6>
@@ -235,7 +237,7 @@ const team: FC = ({}) => {
                         {member.designation}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-start gap-2">
                       <h6 className="text-sm font-semibold leading-none text-zinc-900 dark:text-zinc-200">
                         Role
                       </h6>
@@ -337,14 +339,25 @@ const team: FC = ({}) => {
                       <Button
                         variant="destructive"
                         onClick={() =>
-                          deletePost.mutate({ id: selectedMember.id })
+                          deleteMember.mutate({ id: selectedMember.id })
                         }
+                        disabled={deleteMember.isLoading}
+                        size="sm"
                       >
                         Delete Member
                       </Button>
                     )}
 
-                    <Button type="submit">Save changes</Button>
+                    <Button
+                      type="submit"
+                      disabled={
+                        createMember.isLoading || updateMember.isLoading
+                      }
+                      variant="outline"
+                      size="sm"
+                    >
+                      Save changes
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>

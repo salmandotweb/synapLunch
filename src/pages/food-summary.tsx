@@ -1,13 +1,17 @@
-import { FC, useState } from "react";
+import { FC, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { BiFoodMenu } from "react-icons/bi";
+import { useOnClickOutside } from "usehooks-ts";
 import { z } from "zod";
 
 import { api } from "~/utils/api";
 import { cn } from "~/utils/cn";
 import { useZodForm } from "~/utils/zod-form";
+import { columns } from "~/components/Data Table/columns";
+import { FoodSummaryTable } from "~/components/Food Summary/FoodSummaryTable";
 import { toast } from "~/hooks/use-toast";
 import Layout from "~/layout";
 import { Button } from "~/ui/button";
@@ -32,15 +36,6 @@ import {
   FormMessage,
 } from "~/ui/form";
 import { Input } from "~/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/ui/table";
 
 export const foodFormSchema = z.object({
   date: z.date({
@@ -67,8 +62,10 @@ export const foodFormSchema = z.object({
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
 
-const foodSummary: FC = ({}) => {
+const foodSummary: FC = () => {
+  const ref = useRef(null);
   const [foodOpenModal, setFoodOpenModal] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const { data: companyId } = api.company.getCompanyId.useQuery();
   const { data: members } = api.member.getTeamMembers.useQuery({
@@ -77,6 +74,12 @@ const foodSummary: FC = ({}) => {
   const { data: foodSummaries } = api.foodSummary.getAllFoodSummary.useQuery({
     companyId: companyId ?? "",
   });
+
+  const handleClickOutside = () => {
+    showCalendar && setShowCalendar(false);
+  };
+
+  useOnClickOutside(ref, handleClickOutside);
 
   const form = useForm<FoodFormValues>({
     resolver: zodResolver(foodFormSchema),
@@ -104,6 +107,7 @@ const foodSummary: FC = ({}) => {
       });
 
       methods.reset();
+      form.reset();
 
       setFoodOpenModal(false);
     },
@@ -117,13 +121,17 @@ const foodSummary: FC = ({}) => {
   });
 
   function onSubmit(data: FoodFormValues) {
+    const membersDidNotBringFood = members?.filter(
+      (member) => !data.membersBroughtFood.includes(member.id),
+    );
+
     createFoodSummary.mutate({
       companyId: companyId ?? "",
+      membersDidNotBringFood:
+        membersDidNotBringFood?.map((member) => member.id) ?? [],
       ...data,
     });
   }
-
-  console.log(foodSummaries);
 
   return (
     <Layout emoji="🎐" description="Team">
@@ -133,38 +141,41 @@ const foodSummary: FC = ({}) => {
             <h1 className="mb-3 text-2xl font-semibold leading-none text-zinc-900 dark:text-zinc-200">
               Food Summary
             </h1>
-            <Button onClick={() => setFoodOpenModal(true)}>Add Summary</Button>
+            <Button
+              onClick={() => setFoodOpenModal(true)}
+              variant="outline"
+              size="sm"
+            >
+              <BiFoodMenu />
+              Add Summary
+            </Button>
           </div>
 
-          <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Date</TableHead>
-                <TableHead>Number of members</TableHead>
-                <TableHead>Breads</TableHead>
-                <TableHead>Curries</TableHead>
-                <TableHead className="text-right">Total Ammount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {foodSummaries?.map((foodSummary) => {
-                return (
-                  <TableRow>
-                    <TableCell className="w-[150px] font-medium">
-                      {format(new Date(foodSummary.date), "PPP")}
-                    </TableCell>
-                    <TableCell>{foodSummary.numberOfPeople}</TableCell>
-                    <TableCell>{foodSummary.totalBreads}</TableCell>
-                    <TableCell>{foodSummary.totalCurries}</TableCell>
-                    <TableCell className="text-right">
-                      {foodSummary.totalAmount}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <FoodSummaryTable
+            data={
+              foodSummaries?.map((foodSummary) => {
+                return {
+                  id: foodSummary.id,
+                  date: format(new Date(foodSummary.date), "PPP"),
+                  members: foodSummary.numberOfPeople,
+                  breads: foodSummary.totalBreads,
+                  curries: foodSummary.totalCurries,
+                  totalAmount: foodSummary.totalAmount,
+                };
+              }) ||
+              ([
+                {
+                  id: "No data",
+                  date: "No data",
+                  members: "No data",
+                  breads: "No data",
+                  curries: "No data",
+                  totalAmount: "No data",
+                },
+              ] as any)
+            }
+            columns={columns}
+          />
         </section>
         <Dialog
           open={foodOpenModal}
@@ -172,7 +183,7 @@ const foodSummary: FC = ({}) => {
             setFoodOpenModal(open);
           }}
         >
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Add Food Summary</DialogTitle>
               <DialogDescription>
@@ -189,25 +200,46 @@ const foodSummary: FC = ({}) => {
                     control={form.control}
                     name="date"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start justify-between">
-                        <div className="flex flex-col">
-                          <Input
-                            placeholder="Date"
-                            value={
-                              field.value ? format(field.value, "PPP") : ""
-                            }
-                          />
-                          <FormMessage />
-                        </div>
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
+                      <FormItem className="relative flex w-full flex-col items-start">
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "ml-0 w-[240px] pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
+                            onClick={() => {
+                              setShowCalendar(!showCalendar);
+                            }}
+                            type="button"
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                        {showCalendar && (
+                          <div
+                            ref={ref}
+                            className="absolute top-[40px] z-50 rounded-lg bg-neutral-950 outline outline-1 outline-neutral-500"
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) =>
+                                date > new Date() ||
+                                date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                            />
+                          </div>
+                        )}
+
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -316,8 +348,16 @@ const foodSummary: FC = ({}) => {
                       </FormItem>
                     )}
                   />
-
-                  <Button type="submit">Submit</Button>
+                  <div className="flex w-full justify-end">
+                    <Button
+                      type="submit"
+                      disabled={createFoodSummary.isLoading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </div>
