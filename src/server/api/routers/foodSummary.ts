@@ -12,7 +12,7 @@ export const foodSummaryRouter = createTRPCRouter({
           companyId: input.companyId,
         },
         orderBy: {
-          date: "asc",
+          date: "desc",
         },
       });
     }),
