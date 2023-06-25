@@ -18,6 +18,18 @@ export const companyRouter = createTRPCRouter({
     return firstCompany;
   }),
 
+  getCompanyId: protectedProcedure.query(async ({ ctx }) => {
+    const companies = await ctx.prisma.company.findMany({
+      where: {
+        ownerId: ctx.session.user.id,
+      },
+    });
+
+    const id = companies[0]?.id;
+
+    return id;
+  }),
+
   createCompany: protectedProcedure
     .input(companyFormSchema)
     .mutation(({ ctx, input }) => {

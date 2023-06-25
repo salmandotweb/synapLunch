@@ -75,8 +75,8 @@ model Member {
   id              String         @id @default(cuid())
   name            String
   email           String
-  designation     String
-  role            String
+  designation     String?
+  role            String         @default("user")
   user            User           @relation(fields: [userId], references: [id])
   company         Company        @relation(fields: [companyId], references: [id])
   userId          String

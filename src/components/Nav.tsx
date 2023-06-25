@@ -12,12 +12,18 @@ import {
   FiSettings,
   FiSun,
 } from "react-icons/fi";
+import { RiTeamLine } from "react-icons/ri";
 
 const NavbarItems = [
   {
     name: "Home",
     slug: "/",
     icon: FiHome,
+  },
+  {
+    name: "Team",
+    slug: "/team",
+    icon: RiTeamLine,
   },
   {
     name: "Settings",
