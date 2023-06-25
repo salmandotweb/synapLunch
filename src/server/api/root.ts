@@ -1,4 +1,5 @@
 import { companyRouter } from "./routers/company";
+import { foodSummaryRouter } from "./routers/foodSummary";
 import { memberRouter } from "./routers/member";
 import { createTRPCRouter } from "./trpc";
 
@@ -10,6 +11,7 @@ import { createTRPCRouter } from "./trpc";
 export const appRouter = createTRPCRouter({
   company: companyRouter,
   member: memberRouter,
+  foodSummary: foodSummaryRouter,
 });
 
 // export type definition of API

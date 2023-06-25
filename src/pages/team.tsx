@@ -202,9 +202,9 @@ const team: FC = ({}) => {
               Add Member
             </Button>
           </div>
-          <div className="flex flex-wrap items-center justify-start gap-5">
+          <div className="grid grid-cols-3 place-items-center gap-4">
             {members?.map((member) => (
-              <Card className="w-[350px]">
+              <Card className="w-full">
                 <CardHeader className="flex flex-row items-center justify-between gap-4">
                   <CardTitle>{member.name}</CardTitle>
                   <Button

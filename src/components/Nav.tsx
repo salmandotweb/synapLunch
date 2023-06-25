@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useKBar } from "kbar";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
+import { BiFoodMenu } from "react-icons/bi";
 import {
   FiCommand,
   FiHome,
@@ -19,6 +20,11 @@ const NavbarItems = [
     name: "Home",
     slug: "/",
     icon: FiHome,
+  },
+  {
+    name: "Food Summary",
+    slug: "/food-summary",
+    icon: BiFoodMenu,
   },
   {
     name: "Team",
@@ -68,7 +74,7 @@ export default function NavBar({ path }: { path: string }) {
               {path === item.slug || path === item.nestedSlug ? (
                 <button
                   key={index}
-                  className="relative flex w-full items-center justify-center rounded bg-zinc-800 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl focus:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700"
+                  className="relative flex w-full items-center justify-center whitespace-nowrap rounded bg-zinc-800 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl focus:bg-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700"
                   onMouseLeave={() => {
                     const temp = [...tooltipVisibility];
                     temp[index] = false;
@@ -93,7 +99,7 @@ export default function NavBar({ path }: { path: string }) {
               ) : (
                 <button
                   key={index}
-                  className="relative flex w-full items-center justify-center rounded bg-zinc-700 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl focus:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700"
+                  className="relative flex w-full items-center justify-center whitespace-nowrap rounded bg-zinc-700 shadow duration-300 ease-in-out hover:scale-110 hover:bg-zinc-800 hover:shadow-xl focus:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:focus:bg-zinc-700"
                   onMouseLeave={() => {
                     const temp = [...tooltipVisibility];
                     temp[index] = false;

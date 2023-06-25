@@ -79,6 +79,7 @@ model Member {
   company         Company        @relation(fields: [companyId], references: [id])
   companyId       String
   deposits        Deposit[]
+  foodSummaries   FoodSummary[]  @relation("FoodSummaryMember")
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
@@ -109,10 +110,11 @@ model FoodSummary {
   numberOfPeople  Int
   totalBreads     Int
   totalCurries    Int
-  receipt         String
+  receipt         String?
   totalAmount     Int
   company         Company        @relation("FoodSummaryCompany", fields: [companyId], references: [id])
   companyId       String
+  membersBroughtFood Member[]   @relation("FoodSummaryMember")
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
