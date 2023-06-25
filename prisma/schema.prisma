@@ -49,15 +49,14 @@ model User {
   role            String         @default("user")      
   accounts        Account[]
   sessions        Session[]
-  members         Member[]
   createdAt       DateTime       @default(now())
-  ownerOf         Company[]      @relation("OwnerOf")
+  ownedCompanies  Company[]      @relation("CompanyOwner")
 }
 
 model Company {
   id              String         @id @default(cuid())
   name            String
-  email          String
+  email           String
   description     String?
   logo            String?
   website         String?
@@ -67,8 +66,8 @@ model Company {
   updatedAt       DateTime       @updatedAt
   topups          Topup[]
   members         Member[]
-  foodSummaries   FoodSummary[]
-  owner           User           @relation("OwnerOf", fields: [ownerId], references: [id])
+  owner           User           @relation("CompanyOwner", fields: [ownerId], references: [id])
+  foodSummaries   FoodSummary[]  @relation("FoodSummaryCompany")
 }
 
 model Member {
@@ -77,9 +76,7 @@ model Member {
   email           String
   designation     String?
   role            String         @default("user")
-  user            User           @relation(fields: [userId], references: [id])
   company         Company        @relation(fields: [companyId], references: [id])
-  userId          String
   companyId       String
   deposits        Deposit[]
   createdAt       DateTime       @default(now())
@@ -114,7 +111,7 @@ model FoodSummary {
   totalCurries    Int
   receipt         String
   totalAmount     Int
-  company         Company        @relation(fields: [companyId], references: [id])
+  company         Company        @relation("FoodSummaryCompany", fields: [companyId], references: [id])
   companyId       String
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt

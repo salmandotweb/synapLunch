@@ -45,6 +45,7 @@ export function CompanyForm() {
         name: company.name,
         username: company.name,
         email: company.email,
+        websiteUrl: company.website ?? "",
       });
     }
   }, [company]);

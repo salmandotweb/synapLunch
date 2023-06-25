@@ -22,6 +22,7 @@ export const companyRouter = createTRPCRouter({
     const companies = await ctx.prisma.company.findMany({
       where: {
         ownerId: ctx.session.user.id,
+        email: ctx.session.user.email ?? "",
       },
     });
 

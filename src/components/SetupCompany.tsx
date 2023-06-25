@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,6 +61,8 @@ type ProfileFormValues = z.infer<typeof companyFormSchema>;
 const SetupCompany: FC = ({}) => {
   const router = useRouter();
 
+  const session = useSession();
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(companyFormSchema),
     mode: "onChange",
@@ -76,6 +78,12 @@ const SetupCompany: FC = ({}) => {
   });
 
   const utils = api.useContext();
+
+  useEffect(() => {
+    if (session.data?.user) {
+      form.setValue("email", session.data.user.email ?? "");
+    }
+  }, [session]);
 
   const createCompany = api.company.createCompany.useMutation({
     onSettled: async () => {
@@ -147,7 +155,7 @@ const SetupCompany: FC = ({}) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="company@gmail.com" />
+                <Input {...field} placeholder="company@gmail.com" disabled />
               </FormControl>
               <FormMessage />
             </FormItem>
