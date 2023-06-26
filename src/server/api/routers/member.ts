@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { memberFormSchema } from "~/pages/team";
+import { cashDepositFormSchema, memberFormSchema } from "~/pages/team";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const memberRouter = createTRPCRouter({
@@ -71,5 +71,37 @@ export const memberRouter = createTRPCRouter({
           id: input.id,
         },
       });
+    }),
+
+  addCashDeposit: protectedProcedure
+    .input(z.object({ id: z.string(), ...cashDepositFormSchema.shape }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, amount, date } = input;
+
+      const createdDeposit = await ctx.prisma.deposit.create({
+        data: {
+          date,
+          amount,
+          member: {
+            connect: {
+              id,
+            },
+          },
+        },
+      });
+
+      const updatedMember = await ctx.prisma.member.update({
+        where: {
+          id,
+        },
+        data: {
+          balance: {
+            increment: amount,
+          },
+          lastCashDeposit: date,
+        },
+      });
+
+      return { createdDeposit, updatedMember };
     }),
 });

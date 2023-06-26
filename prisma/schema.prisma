@@ -81,6 +81,8 @@ model Member {
   deposits        Deposit[]
   foodSummariesBrought FoodSummary[]   @relation("membersBroughtFood")
   foodSummariesDidntBring FoodSummary[]   @relation("membersDidntBringFood")
+  lastCashDeposit DateTime?
+  balance         Int            @default(0)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }

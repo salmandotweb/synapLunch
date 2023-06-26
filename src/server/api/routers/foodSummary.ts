@@ -26,7 +26,7 @@ export const foodSummaryRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.prisma.foodSummary.create({
+      const foodSummary = ctx.prisma.foodSummary.create({
         data: {
           date: input.date,
           numberOfPeople: Number(input.noOfMembers),
@@ -52,6 +52,48 @@ export const foodSummaryRouter = createTRPCRouter({
               };
             }),
           },
+        },
+      });
+
+      const members = await ctx.prisma.member.findMany({
+        where: {
+          id: {
+            in: input.membersDidNotBringFood,
+          },
+
+          companyId: input.companyId,
+        },
+      });
+
+      const roundedTotalAmount = Math.round(Number(input.totalAmount));
+
+      const amountToBeDeducted = roundedTotalAmount / members.length;
+
+      const roundedAmountToBeDeducted = Math.round(amountToBeDeducted);
+
+      const updateMemberBalancePromises = members.map((member) => {
+        return ctx.prisma.member.update({
+          where: {
+            id: member.id,
+          },
+
+          data: {
+            balance: member.balance - roundedAmountToBeDeducted,
+          },
+        });
+      });
+
+      await Promise.all(updateMemberBalancePromises);
+
+      return foodSummary;
+    }),
+
+  deleteFoodSummary: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.foodSummary.delete({
+        where: {
+          id: input.id,
         },
       });
     }),

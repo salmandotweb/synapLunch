@@ -16,6 +16,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { Skeleton } from "~/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -30,11 +31,13 @@ import { DataTableToolbar } from "../Data Table/data-table-toolbar";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  fetchingFoodSummaries: boolean;
 }
 
 export function FoodSummaryTable<TData, TValue>({
   columns,
   data,
+  fetchingFoodSummaries,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -69,55 +72,77 @@ export function FoodSummaryTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} />
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
+      <div
+        className={
+          fetchingFoodSummaries ? "rounded-md border-none" : "rounded-md border"
+        }
+      >
+        {fetchingFoodSummaries ? (
+          <div className="flex w-full flex-col gap-5 px-2 py-5">
+            <div className="flex items-center justify-between gap-4">
+              <Skeleton className="h-[20px] w-[100%]" />
+              <Skeleton className="h-[20px] w-[100%]" />
+              <Skeleton className="h-[20px] w-[100%]" />
+              <Skeleton className="h-[20px] w-[100%]" />
+              <Skeleton className="h-[20px] w-[100%]" />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <Skeleton className="h-[20px] w-[100%]" />
+              <Skeleton className="h-[20px] w-[100%]" />
+              <Skeleton className="h-[20px] w-[100%]" />
+            </div>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
       <DataTablePagination table={table} />
     </div>

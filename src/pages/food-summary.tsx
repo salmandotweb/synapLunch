@@ -2,6 +2,7 @@ import { FC, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { GetSessionParams, getSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { BiFoodMenu } from "react-icons/bi";
 import { useOnClickOutside } from "usehooks-ts";
@@ -71,9 +72,10 @@ const foodSummary: FC = () => {
   const { data: members } = api.member.getTeamMembers.useQuery({
     companyId: companyId ?? "",
   });
-  const { data: foodSummaries } = api.foodSummary.getAllFoodSummary.useQuery({
-    companyId: companyId ?? "",
-  });
+  const { data: foodSummaries, isFetching: fetchingFoodSummaries } =
+    api.foodSummary.getAllFoodSummary.useQuery({
+      companyId: companyId ?? "",
+    });
 
   const handleClickOutside = () => {
     showCalendar && setShowCalendar(false);
@@ -106,10 +108,9 @@ const foodSummary: FC = () => {
         title: "Food Summary created.",
       });
 
-      methods.reset();
-      form.reset();
-
       setFoodOpenModal(false);
+      form.reset({});
+      methods.reset();
     },
 
     onError: (error) => {
@@ -175,6 +176,7 @@ const foodSummary: FC = () => {
               ] as any)
             }
             columns={columns}
+            fetchingFoodSummaries={fetchingFoodSummaries}
           />
         </section>
         <Dialog
@@ -369,3 +371,22 @@ const foodSummary: FC = () => {
 };
 
 export default foodSummary;
+
+export async function getServerSideProps(
+  context: GetSessionParams | undefined,
+) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/auth/signin",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: { session },
+  };
+}
