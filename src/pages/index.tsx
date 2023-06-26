@@ -1,6 +1,6 @@
 import { type NextPage } from "next";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { GetSessionParams, getSession, useSession } from "next-auth/react";
 
 import { Overview } from "~/components/Overview";
 import Layout from "~/layout";
@@ -100,3 +100,22 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export async function getServerSideProps(
+  context: GetSessionParams | undefined,
+) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/auth/signin",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: { session },
+  };
+}
