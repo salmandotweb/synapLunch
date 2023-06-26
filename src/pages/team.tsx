@@ -18,6 +18,7 @@ import SkeletonCard from "~/components/Team/SkeletonCard";
 import { useOnClickOutside } from "~/hooks/use-clickOutside";
 import { toast } from "~/hooks/use-toast";
 import Layout from "~/layout";
+import { Badge } from "~/ui/badge";
 import { Button } from "~/ui/button";
 import { Calendar } from "~/ui/calendar";
 import {
@@ -53,6 +54,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/ui/select";
+
+const CardRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | Date;
+}) => {
+  return (
+    <div className="grid w-full grid-cols-[1.4fr,2fr] gap-4">
+      <div>
+        <Badge variant="secondary">{label}</Badge>
+      </div>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        {value instanceof Date ? format(value, "PPP") : value}
+      </p>
+    </div>
+  );
+};
 
 export const memberFormSchema = z.object({
   name: z
@@ -317,31 +337,22 @@ const team: FC = ({}) => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="space-y-2">
-                      <div className="flex flex-col items-start gap-2">
-                        <h6 className="text-sm font-semibold leading-none text-zinc-900 dark:text-zinc-200">
-                          Email
-                        </h6>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {member.email}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-start gap-2">
-                        <h6 className="text-sm font-semibold leading-none text-zinc-900 dark:text-zinc-200">
-                          Designation
-                        </h6>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {member.designation}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-start gap-2">
-                        <h6 className="text-sm font-semibold leading-none text-zinc-900 dark:text-zinc-200">
-                          Role
-                        </h6>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {member.role}
-                        </p>
-                      </div>
+                    <CardDescription className="space-y-6">
+                      <CardRow label="Email" value={member.email} />
+                      <CardRow
+                        label="Designation"
+                        value={member.designation ?? "-"}
+                      />
+                      <CardRow label="Role" value={member.role ?? "-"} />
+                      <CardRow
+                        label="Last Cash Deposit"
+                        value={
+                          member?.lastCashDeposit
+                            ? format(member.lastCashDeposit, "PPP")
+                            : "-"
+                        }
+                      />
+                      <CardRow label="Balance" value={member.balance ?? 0} />
                     </CardDescription>
                   </CardContent>
                 </Card>
