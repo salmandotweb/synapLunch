@@ -1,4 +1,7 @@
+import { z } from "zod";
+
 import { companyFormSchema } from "~/components/SetupCompany";
+import { topupFormSchema } from "~/components/Team/TopupForm";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const companyRouter = createTRPCRouter({
@@ -59,6 +62,32 @@ export const companyRouter = createTRPCRouter({
           name: input.name,
           email: input.email,
           website: input.websiteUrl,
+        },
+      });
+    }),
+
+  addTopup: protectedProcedure
+    .input(
+      z.object({
+        companyId: z.string(),
+        ...topupFormSchema.shape,
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.topup.create({
+        data: {
+          date: input.date,
+          amount: input.amount,
+          company: {
+            connect: {
+              id: input.companyId,
+            },
+          },
+          topupBy: {
+            connect: {
+              id: input.topupBy,
+            },
+          },
         },
       });
     }),

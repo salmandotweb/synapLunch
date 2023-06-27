@@ -43,7 +43,7 @@ model Account {
 model User {
   id              String         @id @default(cuid())
   name            String
-  email           String         @unique
+  email           String         
   emailVerified   DateTime?
   image           String
   role            String         @default("user")      
@@ -51,6 +51,8 @@ model User {
   sessions        Session[]
   createdAt       DateTime       @default(now())
   ownedCompanies  Company[]      @relation("CompanyOwner")
+
+  @@unique([email])
 }
 
 model Company {
@@ -68,6 +70,8 @@ model Company {
   members         Member[]
   owner           User           @relation("CompanyOwner", fields: [ownerId], references: [id])
   foodSummaries   FoodSummary[]  @relation("FoodSummaryCompany")
+
+  @@unique([email])
 }
 
 model Member {
@@ -85,6 +89,9 @@ model Member {
   balance         Int            @default(0)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  topups          Topup[]
+
+  @@unique([email, companyId])
 }
 
 model Topup {
@@ -93,6 +100,8 @@ model Topup {
   amount          Int
   company         Company        @relation(fields: [companyId], references: [id])
   companyId       String
+  topupBy         Member         @relation(fields: [topupById], references: [id])
+  topupById       String
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }

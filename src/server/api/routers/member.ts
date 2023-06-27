@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { cashDepositFormSchema, memberFormSchema } from "~/pages/team";
+import { cashDepositFormSchema } from "~/components/Team/CashDepositForm";
+import { memberFormSchema } from "~/components/Team/MemberForm";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const memberRouter = createTRPCRouter({

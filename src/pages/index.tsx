@@ -2,6 +2,7 @@ import { type NextPage } from "next";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 import { GetSessionParams, getSession, useSession } from "next-auth/react";
 
+import { api } from "~/utils/api";
 import { Overview } from "~/components/Overview";
 import Layout from "~/layout";
 import { Avatar, AvatarFallback, AvatarImage } from "~/ui/avatar";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/ui/card";
 
 const Home: NextPage = () => {
   const session = useSession();
+  const { data: company } = api.company.getCompany.useQuery();
 
   const isLoggedIn = !!session.data;
 
@@ -20,7 +22,7 @@ const Home: NextPage = () => {
             <div>
               <div className="flex items-center justify-between gap-2">
                 <h1 className="mb-3 text-2xl font-semibold leading-none text-zinc-900 dark:text-zinc-200">
-                  Dashboard
+                  Welcome to {company?.name ?? "SynapLunch"}
                 </h1>
                 {isLoggedIn && (
                   <>
