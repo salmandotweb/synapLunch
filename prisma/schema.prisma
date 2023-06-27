@@ -67,12 +67,16 @@ model Company {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   topups          Topup[]
+  lastTopup       DateTime?
   members         Member[]
   owner           User           @relation("CompanyOwner", fields: [ownerId], references: [id])
   foodSummaries   FoodSummary[]  @relation("FoodSummaryCompany")
+  balance         Int            @default(0)
+  breadPrice      Int            @default(0)
 
   @@unique([email])
 }
+
 
 model Member {
   id              String         @id @default(cuid())
@@ -131,3 +135,4 @@ model FoodSummary {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
+

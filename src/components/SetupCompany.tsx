@@ -54,6 +54,7 @@ export const companyFormSchema = z.object({
     .string()
     .url({ message: "Please enter a valid URL." })
     .optional(),
+  breadPrice: z.number().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof companyFormSchema>;

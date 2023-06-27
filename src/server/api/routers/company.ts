@@ -36,8 +36,8 @@ export const companyRouter = createTRPCRouter({
 
   createCompany: protectedProcedure
     .input(companyFormSchema)
-    .mutation(({ ctx, input }) => {
-      return ctx.prisma.company.create({
+    .mutation(async ({ ctx, input }) => {
+      const company = await ctx.prisma.company.create({
         data: {
           name: input.name,
           email: input.email,
@@ -49,12 +49,14 @@ export const companyRouter = createTRPCRouter({
           },
         },
       });
+
+      return company;
     }),
 
   updateCompany: protectedProcedure
     .input(companyFormSchema)
-    .mutation(({ ctx, input }) => {
-      return ctx.prisma.company.update({
+    .mutation(async ({ ctx, input }) => {
+      const updateCompany = await ctx.prisma.company.update({
         where: {
           id: input.id,
         },
@@ -62,8 +64,11 @@ export const companyRouter = createTRPCRouter({
           name: input.name,
           email: input.email,
           website: input.websiteUrl,
+          breadPrice: input.breadPrice,
         },
       });
+
+      return updateCompany;
     }),
 
   addTopup: protectedProcedure
@@ -73,8 +78,8 @@ export const companyRouter = createTRPCRouter({
         ...topupFormSchema.shape,
       }),
     )
-    .mutation(({ ctx, input }) => {
-      return ctx.prisma.topup.create({
+    .mutation(async ({ ctx, input }) => {
+      const topup = await ctx.prisma.topup.create({
         data: {
           date: input.date,
           amount: input.amount,
@@ -90,5 +95,119 @@ export const companyRouter = createTRPCRouter({
           },
         },
       });
+
+      // Update the balance of the company
+      await ctx.prisma.company.update({
+        where: {
+          id: input.companyId,
+        },
+
+        data: {
+          balance: {
+            increment: input.amount,
+          },
+          lastTopup: input.date,
+        },
+      });
+
+      return topup;
+    }),
+
+  // company stats
+
+  // count of total members
+
+  getTotalMembers: protectedProcedure
+    .input(
+      z.object({
+        companyId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const totalMembers = await ctx.prisma.member.count({
+        where: {
+          companyId: input.companyId,
+        },
+      });
+
+      return totalMembers;
+    }),
+
+  getIncreaseOrDecrease: protectedProcedure
+    .input(
+      z.object({
+        companyId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Get the current date
+      const currentDate = new Date();
+
+      // Calculate the start date of last month
+      const lastMonthStartDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - 1,
+        1,
+      );
+
+      // Calculate the start date of the current month
+      const currentMonthStartDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1,
+      );
+
+      // Get the total members created in the current month
+      const currentMonthMembers = await ctx.prisma.member.count({
+        where: {
+          companyId: input.companyId,
+          createdAt: {
+            gte: currentMonthStartDate,
+          },
+        },
+      });
+
+      // Get the total members created in the last month
+      const lastMonthMembers = await ctx.prisma.member.count({
+        where: {
+          companyId: input.companyId,
+          createdAt: {
+            gte: lastMonthStartDate,
+            lt: currentMonthStartDate,
+          },
+        },
+      });
+
+      // Calculate the increase or decrease in members from last month
+      const diffFromLastMonth = currentMonthMembers - lastMonthMembers;
+      const sign = diffFromLastMonth >= 0 ? "+" : "-";
+
+      // Calculate the absolute difference
+      const absoluteDiff = Math.abs(diffFromLastMonth);
+
+      // Prepare the result with sign
+      const result = `${sign}${absoluteDiff}`;
+
+      return result;
+    }),
+
+  getBalance: protectedProcedure
+    .input(
+      z.object({
+        companyId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const balance = await ctx.prisma.company.findFirst({
+        where: {
+          id: input.companyId,
+        },
+        select: {
+          balance: true,
+          lastTopup: true,
+        },
+      });
+
+      return balance;
     }),
 });

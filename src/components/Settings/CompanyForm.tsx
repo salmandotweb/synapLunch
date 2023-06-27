@@ -33,11 +33,6 @@ export function CompanyForm() {
     mode: "onChange",
   });
 
-  const { fields, append } = useFieldArray({
-    name: "urls",
-    control: form.control,
-  });
-
   useEffect(() => {
     if (company) {
       form.reset({
@@ -46,6 +41,7 @@ export function CompanyForm() {
         username: company.name,
         email: company.email,
         websiteUrl: company.website ?? "",
+        breadPrice: company?.breadPrice ?? 0,
       });
     }
   }, [company]);
@@ -142,39 +138,40 @@ export function CompanyForm() {
             </FormItem>
           )}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`urls.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    URLs
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    Add links to your website, blog, or social media profiles.
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => append({ value: "" })}
-          >
-            Add URL
-          </Button>
-        </div>
-        <Button type="submit">Update profile</Button>
+
+        <FormField
+          control={form.control}
+          name="breadPrice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Bread Price</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="0"
+                  onChange={(e) => {
+                    const value = Number(e.target.value);
+                    if (value < 0) {
+                      field.onChange(0);
+                    } else {
+                      field.onChange(value);
+                    }
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          variant="outline"
+          size="sm"
+          type="submit"
+          disabled={updateCompany.isLoading}
+        >
+          Update profile
+        </Button>
       </form>
     </Form>
   );

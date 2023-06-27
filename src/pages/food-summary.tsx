@@ -68,13 +68,13 @@ const foodSummary: FC = () => {
   const [foodOpenModal, setFoodOpenModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
 
-  const { data: companyId } = api.company.getCompanyId.useQuery();
+  const { data: company } = api.company.getCompany.useQuery();
   const { data: members } = api.member.getTeamMembers.useQuery({
-    companyId: companyId ?? "",
+    companyId: company?.id ?? "",
   });
   const { data: foodSummaries, isFetching: fetchingFoodSummaries } =
     api.foodSummary.getAllFoodSummary.useQuery({
-      companyId: companyId ?? "",
+      companyId: company?.id ?? "",
     });
 
   const handleClickOutside = () => {
@@ -127,7 +127,7 @@ const foodSummary: FC = () => {
     );
 
     createFoodSummary.mutate({
-      companyId: companyId ?? "",
+      companyId: company?.id ?? "",
       membersDidNotBringFood:
         membersDidNotBringFood?.map((member) => member.id) ?? [],
       ...data,
@@ -266,6 +266,10 @@ const foodSummary: FC = () => {
                           <FormControl>
                             <Input placeholder="Total Breads" {...field} />
                           </FormControl>
+                          {/* <FormDescription>
+                            {company?.breadPrice !== 0 &&
+                              `Each bread costs Rs. ${company?.breadPrice}`}
+                          </FormDescription> */}
                           <FormMessage />
                         </FormItem>
                       )}

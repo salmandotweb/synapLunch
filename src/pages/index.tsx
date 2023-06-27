@@ -1,4 +1,5 @@
 import { type NextPage } from "next";
+import { format } from "date-fns";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 import { GetSessionParams, getSession, useSession } from "next-auth/react";
 
@@ -11,6 +12,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/ui/card";
 const Home: NextPage = () => {
   const session = useSession();
   const { data: company } = api.company.getCompany.useQuery();
+  const { data: companyBalance } = api.company.getBalance.useQuery({
+    companyId: company?.id as string,
+  });
+  const { data: membersCount } = api.company.getTotalMembers.useQuery({
+    companyId: company?.id as string,
+  });
+  const { data: membersAverage } = api.company.getIncreaseOrDecrease.useQuery({
+    companyId: company?.id as string,
+  });
 
   const isLoggedIn = !!session.data;
 
@@ -40,54 +50,64 @@ const Home: NextPage = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Total Revenue
-                  </CardTitle>
-                  <DollarSign className="text-muted-foreground h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">$45,231.89</div>
-                  <p className="text-muted-foreground text-xs">
-                    +20.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Subscriptions
+                    Total Members
                   </CardTitle>
                   <Users className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+2350</div>
+                  <div className="text-2xl font-bold">{membersCount ?? 0}</div>
                   <p className="text-muted-foreground text-xs">
-                    +180.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                  <CreditCard className="text-muted-foreground h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+12,234</div>
-                  <p className="text-muted-foreground text-xs">
-                    +19% from last month
+                    {membersAverage ?? 0} since last month
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Active Now
+                    Balance Remaining
+                  </CardTitle>
+                  <DollarSign className="text-muted-foreground h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {companyBalance?.balance ?? 0}
+                  </div>
+
+                  <p className="text-muted-foreground text-xs">
+                    Last topup:{" "}
+                    {companyBalance?.lastTopup
+                      ? format(new Date(companyBalance.lastTopup), "dd/MM/yyyy")
+                      : "N/A"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Average Spent per day
+                  </CardTitle>
+                  <CreditCard className="text-muted-foreground h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">700</div>
+                  <p className="text-muted-foreground text-xs">
+                    +200 since last month
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Average Amount per member
                   </CardTitle>
                   <Activity className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+573</div>
+                  <div className="text-2xl font-bold">
+                    {Math.round(2350 / 7)}
+                  </div>
                   <p className="text-muted-foreground text-xs">
-                    +201 since last hour
+                    +200 since last month
                   </p>
                 </CardContent>
               </Card>

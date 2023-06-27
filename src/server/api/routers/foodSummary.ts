@@ -26,6 +26,11 @@ export const foodSummaryRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const company = await ctx.prisma.company.findUnique({
+        where: {
+          id: input.companyId,
+        },
+      });
       const foodSummary = ctx.prisma.foodSummary.create({
         data: {
           date: input.date,
@@ -65,11 +70,30 @@ export const foodSummaryRouter = createTRPCRouter({
         },
       });
 
+      const breadPrice = Number(company?.breadPrice);
+
       const roundedTotalAmount = Math.round(Number(input.totalAmount));
 
-      const amountToBeDeducted = roundedTotalAmount / members.length;
+      const totalBreadAmount = breadPrice * Number(input.breads);
+
+      const remainingAmount = roundedTotalAmount - totalBreadAmount;
+
+      const amountToBeDeducted = remainingAmount / members.length;
 
       const roundedAmountToBeDeducted = Math.round(amountToBeDeducted);
+
+      const updateCompanyBalance = ctx.prisma.company.update({
+        where: {
+          id: input.companyId,
+        },
+        data: {
+          balance: {
+            decrement: totalBreadAmount,
+          },
+        },
+      });
+
+      await updateCompanyBalance;
 
       const updateMemberBalancePromises = members.map((member) => {
         return ctx.prisma.member.update({
