@@ -124,8 +124,8 @@ model FoodSummary {
   id              String         @id @default(cuid())
   date            DateTime  
   numberOfPeople  Int
-  totalBreads     Int
-  totalCurries    Int
+  totalBreadsAmount     Int
+  totalCurriesAmount    Int
   receipt         String?
   totalAmount     Int
   company         Company        @relation("FoodSummaryCompany", fields: [companyId], references: [id])

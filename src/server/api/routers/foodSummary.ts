@@ -35,8 +35,8 @@ export const foodSummaryRouter = createTRPCRouter({
         data: {
           date: input.date,
           numberOfPeople: Number(input.noOfMembers),
-          totalBreads: Number(input.breads),
-          totalCurries: Number(input.curries),
+          totalBreads: Number(input.breadsAmount),
+          totalCurries: Number(input.curriesAmount),
           totalAmount: Number(input.totalAmount),
           company: {
             connect: {
@@ -70,11 +70,9 @@ export const foodSummaryRouter = createTRPCRouter({
         },
       });
 
-      const breadPrice = Number(company?.breadPrice);
-
       const roundedTotalAmount = Math.round(Number(input.totalAmount));
 
-      const totalBreadAmount = breadPrice * Number(input.breads);
+      const totalBreadAmount = Number(input.breadsAmount);
 
       const remainingAmount = roundedTotalAmount - totalBreadAmount;
 

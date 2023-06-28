@@ -45,11 +45,11 @@ export const foodFormSchema = z.object({
   noOfMembers: z.string({
     required_error: "Number of members is required",
   }),
-  breads: z.string({
-    required_error: "Breads is required",
+  breadsAmount: z.string({
+    required_error: "Breads Amount is required",
   }),
-  curries: z.string({
-    required_error: "Curries is required",
+  curriesAmount: z.string({
+    required_error: "Curries Amount is required",
   }),
   totalAmount: z.string({
     required_error: "Total Ammount is required",
@@ -260,7 +260,7 @@ const foodSummary: FC = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="breads"
+                      name="breadsAmount"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
@@ -276,7 +276,7 @@ const foodSummary: FC = () => {
                     />
                     <FormField
                       control={form.control}
-                      name="curries"
+                      name="curriesAmount"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
