@@ -112,6 +112,10 @@ export const foodSummaryRouter = createTRPCRouter({
         where: {
           id: input.id,
         },
+
+        include: {
+          membersDidntBringFood: true,
+        },
       });
 
       const deleteSummary = ctx.prisma.foodSummary.delete({
@@ -134,5 +138,28 @@ export const foodSummaryRouter = createTRPCRouter({
       });
 
       await updateCompanyBalance;
+
+      // update members balance who did not bring food
+      const updateMemberBalancePromises = getSummary?.membersDidntBringFood.map(
+        (member) => {
+          return ctx.prisma.member.update({
+            where: {
+              id: member.id,
+            },
+
+            data: {
+              balance: {
+                increment:
+                  getSummary?.totalCurriesAmount /
+                  getSummary.membersDidntBringFood.length,
+              },
+            },
+          });
+        },
+      );
+
+      await Promise.all(updateMemberBalancePromises || []);
+
+      return true;
     }),
 });
