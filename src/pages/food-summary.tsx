@@ -264,7 +264,10 @@ const foodSummary: FC = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Total Breads" {...field} />
+                            <Input
+                              placeholder="Total Breads Amount"
+                              {...field}
+                            />
                           </FormControl>
                           {/* <FormDescription>
                             {company?.breadPrice !== 0 &&
@@ -280,7 +283,10 @@ const foodSummary: FC = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Total Curries" {...field} />
+                            <Input
+                              placeholder="Total Curries Amount"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
