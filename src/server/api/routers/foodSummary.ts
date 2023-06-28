@@ -26,17 +26,12 @@ export const foodSummaryRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const company = await ctx.prisma.company.findUnique({
-        where: {
-          id: input.companyId,
-        },
-      });
       const foodSummary = ctx.prisma.foodSummary.create({
         data: {
           date: input.date,
           numberOfPeople: Number(input.noOfMembers),
-          totalBreads: Number(input.breadsAmount),
-          totalCurries: Number(input.curriesAmount),
+          totalBreadsAmount: Number(input.breadsAmount),
+          totalCurriesAmount: Number(input.curriesAmount),
           totalAmount: Number(input.totalAmount),
           company: {
             connect: {

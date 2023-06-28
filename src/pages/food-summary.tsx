@@ -159,8 +159,8 @@ const foodSummary: FC = () => {
                   id: foodSummary.id,
                   date: format(new Date(foodSummary.date), "PPP"),
                   members: foodSummary.numberOfPeople,
-                  breads: foodSummary.totalBreads,
-                  curries: foodSummary.totalCurries,
+                  breads: foodSummary.totalBreadsAmount,
+                  curries: foodSummary.totalCurriesAmount,
                   totalAmount: foodSummary.totalAmount,
                 };
               }) ||
