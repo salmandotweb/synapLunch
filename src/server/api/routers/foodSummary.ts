@@ -108,10 +108,31 @@ export const foodSummaryRouter = createTRPCRouter({
   deleteFoodSummary: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.prisma.foodSummary.delete({
+      const getSummary = await ctx.prisma.foodSummary.findUnique({
         where: {
           id: input.id,
         },
       });
+
+      const deleteSummary = ctx.prisma.foodSummary.delete({
+        where: {
+          id: input.id,
+        },
+      });
+
+      await deleteSummary;
+
+      const updateCompanyBalance = ctx.prisma.company.update({
+        where: {
+          id: getSummary?.companyId,
+        },
+        data: {
+          balance: {
+            increment: getSummary?.totalBreadsAmount,
+          },
+        },
+      });
+
+      await updateCompanyBalance;
     }),
 });
