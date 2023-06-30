@@ -1,4 +1,4 @@
-import { FC, useRef, useState } from "react";
+import React, { FC, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { api } from "~/utils/api";
 import { cn } from "~/utils/cn";
+import { UploadButton } from "~/utils/uploadthing";
 import { useZodForm } from "~/utils/zod-form";
 import { columns } from "~/components/Data Table/columns";
 import { FoodSummaryTable } from "~/components/Food Summary/FoodSummaryTable";
@@ -22,7 +23,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -44,6 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/ui/select";
+import "@uploadthing/react/styles.css";
 
 export const foodFormSchema = z.object({
   date: z.date({
@@ -264,6 +265,16 @@ const foodSummary: FC = () => {
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+
+                  <UploadButton
+                    endpoint="imageUploader"
+                    onClientUploadComplete={(res) => {
+                      alert("Upload complete!");
+                    }}
+                    onUploadError={(error: Error) => {
+                      alert(`ERROR! ${error.message}`);
+                    }}
                   />
 
                   <div className="grid grid-cols-2 place-items-stretch gap-4">

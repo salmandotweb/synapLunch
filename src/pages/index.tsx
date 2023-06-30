@@ -1,6 +1,4 @@
-import { ChangeEvent } from "react";
 import { type NextPage } from "next";
-import axios from "axios";
 import { format } from "date-fns";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 import { GetSessionParams, getSession, useSession } from "next-auth/react";
@@ -49,6 +47,7 @@ const Home: NextPage = () => {
                 )}
               </div>
             </div>
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -126,7 +126,7 @@ model FoodSummary {
   date            DateTime  
   totalBreadsAmount     Int
   totalCurriesAmount    Int
-  receipt         String?
+  Receipt        Receipt[]
   extraMembers    Int?           @default(0)
   extraMembersRelatedTo Member[]   @relation("extraMembersRelatedTo")
   totalAmount     Int
@@ -138,3 +138,10 @@ model FoodSummary {
   updatedAt       DateTime       @updatedAt
 }
 
+model Receipt {
+  id              String         @id @default(cuid())
+  date            DateTime  
+  receipt        String
+  FoodSummary     FoodSummary    @relation(fields: [foodSummaryId], references: [id])
+  foodSummaryId   String
+}

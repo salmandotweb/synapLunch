@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { foodFormSchema } from "~/pages/food-summary";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const foodSummaryRouter = createTRPCRouter({
   getAllFoodSummary: protectedProcedure

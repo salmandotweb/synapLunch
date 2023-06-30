@@ -24,5 +24,8 @@ const config = {
   // We run these separately in CI, so we can skip them here.
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  experimental: {
+    esmExternals: false, // THIS IS THE FLAG THAT MATTERS
+  },
 };
 export default config;
