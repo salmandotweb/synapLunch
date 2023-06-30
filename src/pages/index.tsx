@@ -1,4 +1,6 @@
+import { ChangeEvent } from "react";
 import { type NextPage } from "next";
+import axios from "axios";
 import { format } from "date-fns";
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 import { GetSessionParams, getSession, useSession } from "next-auth/react";
@@ -34,6 +36,7 @@ const Home: NextPage = () => {
                 <h1 className="mb-3 text-2xl font-semibold leading-none text-zinc-900 dark:text-zinc-200">
                   Welcome to {company?.name ?? "SynapLunch"}
                 </h1>
+
                 {isLoggedIn && (
                   <>
                     <Avatar>

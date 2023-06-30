@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { foodFormSchema } from "~/pages/food-summary";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const foodSummaryRouter = createTRPCRouter({
   getAllFoodSummary: protectedProcedure
@@ -26,12 +26,32 @@ export const foodSummaryRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const totalExtraMembers = input.extraMembers?.map((member) => {
+        return member.numberOfMembers;
+      });
+
+      const sumOfExtraMembers = totalExtraMembers?.reduce(
+        (accumulator, currentValue) => accumulator + parseInt(currentValue),
+        0,
+      );
+
+      const extraMembersRelatedTo = input.extraMembers?.map((member) => {
+        return member.relatedTo;
+      });
+
       const foodSummary = ctx.prisma.foodSummary.create({
         data: {
           date: input.date,
-          numberOfPeople: Number(input.noOfMembers),
           totalBreadsAmount: Number(input.breadsAmount),
           totalCurriesAmount: Number(input.curriesAmount),
+          extraMembers: sumOfExtraMembers,
+          extraMembersRelatedTo: {
+            connect: extraMembersRelatedTo?.map((memberId) => {
+              return {
+                id: memberId,
+              };
+            }),
+          },
           totalAmount: Number(input.totalAmount),
           company: {
             connect: {
@@ -39,7 +59,7 @@ export const foodSummaryRouter = createTRPCRouter({
             },
           },
           membersBroughtFood: {
-            connect: input.membersBroughtFood.map((memberId) => {
+            connect: input.membersBroughtFood?.map((memberId) => {
               return {
                 id: memberId,
               };

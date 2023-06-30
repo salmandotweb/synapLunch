@@ -89,6 +89,7 @@ model Member {
   deposits        Deposit[]
   foodSummariesBrought FoodSummary[]   @relation("membersBroughtFood")
   foodSummariesDidntBring FoodSummary[]   @relation("membersDidntBringFood")
+  extraMembers FoodSummary[]   @relation("extraMembersRelatedTo")
   lastCashDeposit DateTime?
   balance         Int            @default(0)
   createdAt       DateTime       @default(now())
@@ -123,10 +124,11 @@ model Deposit {
 model FoodSummary {
   id              String         @id @default(cuid())
   date            DateTime  
-  numberOfPeople  Int
   totalBreadsAmount     Int
   totalCurriesAmount    Int
   receipt         String?
+  extraMembers    Int?           @default(0)
+  extraMembersRelatedTo Member[]   @relation("extraMembersRelatedTo")
   totalAmount     Int
   company         Company        @relation("FoodSummaryCompany", fields: [companyId], references: [id])
   companyId       String

@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { GetSessionParams, getSession } from "next-auth/react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { BiFoodMenu } from "react-icons/bi";
 import { useOnClickOutside } from "usehooks-ts";
 import { z } from "zod";
@@ -37,13 +37,17 @@ import {
   FormMessage,
 } from "~/ui/form";
 import { Input } from "~/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/ui/select";
 
 export const foodFormSchema = z.object({
   date: z.date({
     required_error: "Date is required",
-  }),
-  noOfMembers: z.string({
-    required_error: "Number of members is required",
   }),
   breadsAmount: z.string({
     required_error: "Breads Amount is required",
@@ -51,14 +55,22 @@ export const foodFormSchema = z.object({
   curriesAmount: z.string({
     required_error: "Curries Amount is required",
   }),
+  extraMembers: z
+    .array(
+      z.object({
+        numberOfMembers: z.string({
+          required_error: "Number of Members is required",
+        }),
+        relatedTo: z.string({
+          required_error: "Related To is required",
+        }),
+      }),
+    )
+    .optional(),
   totalAmount: z.string({
     required_error: "Total Ammount is required",
   }),
-  membersBroughtFood: z
-    .array(z.string())
-    .refine((value) => value.some((item) => item), {
-      message: "You have to select at least one item.",
-    }),
+  membersBroughtFood: z.array(z.string()).optional(),
 });
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
@@ -69,13 +81,13 @@ const foodSummary: FC = () => {
   const [showCalendar, setShowCalendar] = useState(false);
 
   const { data: company } = api.company.getCompany.useQuery();
-  const { data: members } = api.member.getTeamMembers.useQuery({
-    companyId: company?.id ?? "",
-  });
   const { data: foodSummaries, isFetching: fetchingFoodSummaries } =
     api.foodSummary.getAllFoodSummary.useQuery({
       companyId: company?.id ?? "",
     });
+  const { data: members } = api.member.getTeamMembers.useQuery({
+    companyId: company?.id ?? "",
+  });
 
   const handleClickOutside = () => {
     showCalendar && setShowCalendar(false);
@@ -97,6 +109,11 @@ const foodSummary: FC = () => {
 
   const utils = api.useContext();
 
+  const { fields, append } = useFieldArray({
+    name: "extraMembers",
+    control: form.control,
+  });
+
   const createFoodSummary = api.foodSummary.createFoodSummary.useMutation({
     onSettled: async () => {
       await utils.foodSummary.invalidate();
@@ -109,8 +126,11 @@ const foodSummary: FC = () => {
       });
 
       setFoodOpenModal(false);
-      form.reset({});
       methods.reset();
+      form.reset({
+        membersBroughtFood: [],
+        extraMembers: [],
+      });
     },
 
     onError: (error) => {
@@ -121,9 +141,9 @@ const foodSummary: FC = () => {
     },
   });
 
-  function onSubmit(data: FoodFormValues) {
+  const onSubmit = async (data: FoodFormValues) => {
     const membersDidNotBringFood = members?.filter(
-      (member) => !data.membersBroughtFood.includes(member.id),
+      (member) => !data.membersBroughtFood?.includes(member.id),
     );
 
     createFoodSummary.mutate({
@@ -132,7 +152,7 @@ const foodSummary: FC = () => {
         membersDidNotBringFood?.map((member) => member.id) ?? [],
       ...data,
     });
-  }
+  };
 
   return (
     <Layout emoji="🎐" description="Team">
@@ -158,7 +178,6 @@ const foodSummary: FC = () => {
                 return {
                   id: foodSummary.id,
                   date: format(new Date(foodSummary.date), "PPP"),
-                  members: foodSummary.numberOfPeople,
                   breads: foodSummary.totalBreadsAmount,
                   curries: foodSummary.totalCurriesAmount,
                   totalAmount: foodSummary.totalAmount,
@@ -192,6 +211,7 @@ const foodSummary: FC = () => {
                 Add food summary for the team.
               </DialogDescription>
             </DialogHeader>
+
             <div className="grid gap-4 py-4">
               <Form {...form}>
                 <form
@@ -245,19 +265,8 @@ const foodSummary: FC = () => {
                       </FormItem>
                     )}
                   />
+
                   <div className="grid grid-cols-2 place-items-stretch gap-4">
-                    <FormField
-                      control={form.control}
-                      name="noOfMembers"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input placeholder="No of Members" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <FormField
                       control={form.control}
                       name="breadsAmount"
@@ -269,10 +278,10 @@ const foodSummary: FC = () => {
                               {...field}
                             />
                           </FormControl>
-                          {/* <FormDescription>
+                          <FormDescription>
                             {company?.breadPrice !== 0 &&
                               `Each bread costs Rs. ${company?.breadPrice}`}
-                          </FormDescription> */}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -305,6 +314,69 @@ const foodSummary: FC = () => {
                       )}
                     />
                   </div>
+
+                  <div>
+                    <FormLabel>Extra Members</FormLabel>
+                    <FormDescription>
+                      Add extra members and who they are related to.
+                    </FormDescription>
+                    {fields.map((field, index) => (
+                      <div className="my-4 grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          key={field.id}
+                          name={`extraMembers.${index}.numberOfMembers`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Number of Members"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`extraMembers.${index}.relatedTo`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Related To" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {members?.map((member) => (
+                                    <SelectItem value={member.id}>
+                                      {member.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => append({} as any)}
+                    >
+                      Add Extra Members
+                    </Button>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="membersBroughtFood"
@@ -336,7 +408,7 @@ const foodSummary: FC = () => {
                                         onCheckedChange={(checked) => {
                                           return checked
                                             ? field.onChange([
-                                                ...field.value,
+                                                ...(field.value || []),
                                                 item.id,
                                               ])
                                             : field.onChange(
@@ -360,6 +432,7 @@ const foodSummary: FC = () => {
                       </FormItem>
                     )}
                   />
+
                   <div className="flex w-full justify-end">
                     <Button
                       type="submit"

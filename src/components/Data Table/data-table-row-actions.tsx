@@ -49,6 +49,7 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   const utils = api.useContext();
+
   const deleteFoodSummary = api.foodSummary.deleteFoodSummary.useMutation({
     onSettled: async () => {
       await utils.member.invalidate();
@@ -58,6 +59,8 @@ export function DataTableRowActions<TData>({
       toast({
         title: "Food Summary Deleted.",
       });
+
+      utils.foodSummary.invalidate();
     },
 
     onError: (error) => {
