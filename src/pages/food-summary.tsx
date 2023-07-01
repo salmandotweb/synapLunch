@@ -261,7 +261,7 @@ const foodSummary: FC = () => {
             setFoodOpenModal(open);
           }}
         >
-          <DialogContent className="sm:max-h-[90vh] sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px]s overflow-y-auto sm:max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>Add Food Summary</DialogTitle>
               <DialogDescription>

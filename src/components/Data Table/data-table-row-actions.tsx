@@ -25,6 +25,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "~/ui/dropdown-menu";
+import { Skeleton } from "~/ui/skeleton";
 
 interface DataTableRowActionsProps<TData> {
   row: {
@@ -45,13 +46,15 @@ export function DataTableRowActions<TData>({
   const [viewFoodSummary, setViewFoodSummary] = useState(false);
   const [selectedRowId, setSelectedRowId] = useState("");
 
-  const { data: foodSummary } = api.foodSummary.getFoodSummaryById.useQuery({
-    id: selectedRowId,
-  });
+  const { data: foodSummary, isLoading: fetchingFoodSummary } =
+    api.foodSummary.getFoodSummaryById.useQuery({
+      id: selectedRowId,
+    });
 
-  const { data: recieptUrl } = api.s3.getObjectUrl.useQuery({
-    key: foodSummary?.reciept ?? "",
-  });
+  const { data: recieptUrl, isLoading: fetchingReceiptUrl } =
+    api.s3.getObjectUrl.useQuery({
+      key: foodSummary?.reciept ?? "",
+    });
 
   const deleteFoodSummary = api.foodSummary.deleteFoodSummary.useMutation({
     onSettled: async () => {
@@ -112,58 +115,94 @@ export function DataTableRowActions<TData>({
             setViewFoodSummary(false);
           }}
         >
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader className="space-y-10">
-              <DialogTitle>
-                Food Summary{" "}
-                {foodSummary?.date &&
-                  format(new Date(foodSummary?.date), "PPP")}
-              </DialogTitle>
-              <DialogDescription className="space-y-5">
-                {foodSummary?.reciept && recieptUrl && (
-                  <Image
-                    src={recieptUrl}
-                    alt="reciept"
-                    height={300}
-                    width={500}
-                  />
-                )}
-                <div className="grid w-full grid-cols-3">
-                  <div>Breads Amount: {foodSummary?.totalBreadsAmount}</div>
-                  <div>Curries Amount: {foodSummary?.totalCurriesAmount}</div>
-                  <div>Total Amount: {foodSummary?.totalAmount}</div>
+          <DialogContent className="sm:max-w-[600px]">
+            {fetchingFoodSummary ? (
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
                 </div>
-                <div className="space-y-4">
-                  {foodSummary?.membersBroughtFood.length !== 0 && (
-                    <div className="flex flex-wrap gap-4">
-                      Members Who Brought Food:{" "}
-                      {foodSummary?.membersBroughtFood?.map((member) => {
-                        return <Badge variant="outline">{member?.name}</Badge>;
-                      })}
-                    </div>
+              </div>
+            ) : (
+              <DialogHeader className="space-y-10">
+                <DialogTitle>
+                  Food Summary{" "}
+                  {foodSummary?.date &&
+                    format(new Date(foodSummary?.date), "PPP")}
+                </DialogTitle>
+                <DialogDescription className="space-y-5">
+                  {foodSummary?.reciept && recieptUrl && (
+                    <Image
+                      src={recieptUrl}
+                      alt="reciept"
+                      height={300}
+                      width={600}
+                    />
                   )}
-                  {foodSummary?.membersDidntBringFood.length !== 0 && (
-                    <div className="flex flex-wrap gap-4">
-                      Members Who Didn't Bring Food:{" "}
-                      {foodSummary?.membersDidntBringFood?.map((member) => {
-                        return <Badge variant="outline">{member?.name}</Badge>;
-                      })}
+                  <div className="grid w-full grid-cols-3">
+                    <div className="flex gap-1">
+                      Breads Amount:
+                      <Badge variant="outline">
+                        {foodSummary?.totalBreadsAmount}
+                      </Badge>
                     </div>
+                    <div className="flex gap-1">
+                      Curries Amount:
+                      <Badge variant="outline">
+                        {foodSummary?.totalCurriesAmount}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1">
+                      Total Amount:
+                      <Badge variant="outline">
+                        {foodSummary?.totalAmount}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {foodSummary?.membersBroughtFood.length !== 0 && (
+                      <div className="flex flex-wrap gap-4">
+                        Members Who Brought Food:{" "}
+                        {foodSummary?.membersBroughtFood?.map((member) => {
+                          return (
+                            <Badge variant="outline">{member?.name}</Badge>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {foodSummary?.membersDidntBringFood.length !== 0 && (
+                      <div className="flex flex-wrap gap-4">
+                        Members Who Didn't Bring Food:{" "}
+                        {foodSummary?.membersDidntBringFood?.map((member) => {
+                          return (
+                            <Badge variant="outline">{member?.name}</Badge>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  {foodSummary?.extraMembers !== 0 && (
+                    <>
+                      <div className="flex gap-1">
+                        Extra Members:
+                        <Badge variant="outline">
+                          {foodSummary?.extraMembers}
+                        </Badge>
+                      </div>
+                      <div>
+                        Extra Members related to:{" "}
+                        {foodSummary?.extraMembersRelatedTo?.map((member) => {
+                          return (
+                            <Badge variant="outline">{member?.name}</Badge>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
-                </div>
-                {foodSummary?.extraMembers !== 0 && (
-                  <>
-                    <div>Extra Members: {foodSummary?.extraMembers}</div>
-                    <div>
-                      Extra Members related to:{" "}
-                      {foodSummary?.extraMembersRelatedTo?.map((member) => {
-                        return <Badge variant="outline">{member?.name}</Badge>;
-                      })}
-                    </div>
-                  </>
-                )}
-              </DialogDescription>
-            </DialogHeader>
+                </DialogDescription>
+              </DialogHeader>
+            )}
           </DialogContent>
         </Dialog>
       )}
