@@ -11,12 +11,12 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 const UPLOAD_MAX_FILE_SIZE = 1000000;
 
 const s3Client = new S3Client({
-  region: "us-east-1",
-  endpoint: "http://localhost:9000",
+  region: env.S3_REGION,
+  endpoint: env.S3_URL,
   forcePathStyle: true,
   credentials: {
-    accessKeyId: "S3RVER",
-    secretAccessKey: "S3RVER",
+    accessKeyId: env.S3_ACCESS_KEY_ID,
+    secretAccessKey: env.S3_SECRET_ACCESS_KEY,
   },
 });
 
