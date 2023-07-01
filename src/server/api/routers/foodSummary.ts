@@ -1,24 +1,7 @@
-import { S3Client } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
-import { TRPCError } from "@trpc/server";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { env } from "~/env.mjs";
 import { foodFormSchema } from "~/pages/food-summary";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-
-const UPLOAD_MAX_FILE_SIZE = 1000000;
-
-const s3Client = new S3Client({
-  region: env.S3_REGION,
-  endpoint: env.S3_URL,
-  forcePathStyle: true,
-  credentials: {
-    accessKeyId: env.S3_ACCESS_KEY_ID,
-    secretAccessKey: env.S3_SECRET_ACCESS_KEY,
-  },
-});
 
 export const foodSummaryRouter = createTRPCRouter({
   getAllFoodSummary: protectedProcedure
@@ -40,6 +23,7 @@ export const foodSummaryRouter = createTRPCRouter({
         companyId: z.string(),
         membersDidNotBringFood: z.array(z.string()),
         ...foodFormSchema.shape,
+        fileKey: z.string().optional().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -61,6 +45,7 @@ export const foodSummaryRouter = createTRPCRouter({
           date: input.date,
           totalBreadsAmount: Number(input.breadsAmount),
           totalCurriesAmount: Number(input.curriesAmount),
+          reciept: input.fileKey,
           extraMembers: sumOfExtraMembers,
           extraMembersRelatedTo: {
             connect: extraMembersRelatedTo?.map((memberId) => {
@@ -198,46 +183,5 @@ export const foodSummaryRouter = createTRPCRouter({
       await Promise.all(updateMemberBalancePromises || []);
 
       return true;
-    }),
-  createPresignedUrl: protectedProcedure
-    .input(z.object({ foodSummaryId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const course = await ctx.prisma.foodSummary.findUnique({
-        where: {
-          id: input.foodSummaryId,
-        },
-      });
-
-      if (!course) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Food Summary not found",
-        });
-      }
-
-      const imageId = uuidv4();
-      await ctx.prisma.receipt.create({
-        data: {
-          date: new Date(),
-          receipt: imageId,
-          FoodSummary: {
-            connect: {
-              id: input.foodSummaryId,
-            },
-          },
-        },
-      });
-
-      return createPresignedPost(s3Client, {
-        Bucket: env.NEXT_PUBLIC_S3_BUCKET_NAME,
-        Key: imageId,
-        Fields: {
-          key: imageId,
-        },
-        Conditions: [
-          ["starts-with", "$Content-Type", "image/"],
-          ["content-length-range", 0, UPLOAD_MAX_FILE_SIZE],
-        ],
-      });
     }),
 });

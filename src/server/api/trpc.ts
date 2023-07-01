@@ -29,6 +29,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
+import { s3 } from "~/server/aws/s3";
 import { prisma } from "~/server/db";
 
 type CreateContextOptions = {
@@ -49,6 +50,7 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
     prisma,
+    s3,
   };
 };
 

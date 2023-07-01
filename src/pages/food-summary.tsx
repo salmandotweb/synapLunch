@@ -1,8 +1,10 @@
 import React, { FC, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { GetSessionParams, getSession } from "next-auth/react";
+import { useDropzone } from "react-dropzone";
 import { useFieldArray, useForm } from "react-hook-form";
 import { BiFoodMenu } from "react-icons/bi";
 import { useOnClickOutside } from "usehooks-ts";
@@ -74,38 +76,24 @@ export const foodFormSchema = z.object({
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
 
-async function uploadFileToS3({
-  getPresignedUrl,
-  file,
-}: {
-  getPresignedUrl: () => Promise<{
-    url: string;
-    fields: Record<string, string>;
-  }>;
-  file: File;
-}) {
-  const { url, fields } = await getPresignedUrl();
-  const data: Record<string, any> = {
-    ...fields,
-    "Content-Type": file.type,
-    file,
-  };
-  const formData = new FormData();
-  for (const name in data) {
-    formData.append(name, data[name]);
+function generateRandomString(length: number) {
+  let result = "";
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
 
-  await fetch(url, {
-    method: "POST",
-    body: formData,
-  });
+  return result;
 }
 
 const foodSummary: FC = () => {
   const ref = useRef(null);
   const [foodOpenModal, setFoodOpenModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [fileKey, setFileKey] = useState<string | null>(null);
 
   const { data: company } = api.company.getCompany.useQuery();
   const { data: foodSummaries, isFetching: fetchingFoodSummaries } =
@@ -115,9 +103,28 @@ const foodSummary: FC = () => {
   const { data: members } = api.member.getTeamMembers.useQuery({
     companyId: company?.id ?? "",
   });
+  const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
+  const { mutateAsync: fetchPresignedUrls } =
+    api.s3.getStandardUploadPresignedUrl.useMutation();
 
-  const createPresignedUrlMutation =
-    api.foodSummary.createPresignedUrl.useMutation();
+  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
+    useDropzone({
+      maxFiles: 1,
+      maxSize: 5 * 2 ** 30, // roughly 5GB
+      multiple: false,
+      onDropAccepted: (files, _event) => {
+        const uuid = generateRandomString(50);
+
+        fetchPresignedUrls({
+          key: uuid,
+        })
+          .then((url) => {
+            setPresignedUrl(url);
+            setFileKey(uuid);
+          })
+          .catch((err) => console.error(err));
+      },
+    });
 
   const handleClickOutside = () => {
     showCalendar && setShowCalendar(false);
@@ -172,29 +179,28 @@ const foodSummary: FC = () => {
   });
 
   const onSubmit = async (data: FoodFormValues) => {
-    const membersDidNotBringFood = members?.filter(
-      (member) => !data.membersBroughtFood?.includes(member.id),
-    );
+    try {
+      if (acceptedFiles.length > 0 && presignedUrl !== null) {
+        const file = acceptedFiles[0] as File;
+        await axios.put(presignedUrl, file.slice(), {
+          headers: { "Content-Type": file.type },
+        });
+      }
 
-    createFoodSummary.mutate({
-      companyId: company?.id ?? "",
-      membersDidNotBringFood:
-        membersDidNotBringFood?.map((member) => member.id) ?? [],
-      ...data,
-    });
-  };
+      const membersDidNotBringFood = members?.filter(
+        (member) => !data.membersBroughtFood?.includes(member.id),
+      );
 
-  const uploadImage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!file) return;
-    await uploadFileToS3({
-      getPresignedUrl: () =>
-        createPresignedUrlMutation.mutateAsync({
-          foodSummaryId: "cljfkt2dv0000mi08dysbkvbq",
-        }),
-      file,
-    });
-    setFile(null);
+      createFoodSummary.mutate({
+        companyId: company?.id ?? "",
+        membersDidNotBringFood:
+          membersDidNotBringFood?.map((member) => member.id) ?? [],
+        ...data,
+        fileKey: fileKey ?? null,
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -214,19 +220,6 @@ const foodSummary: FC = () => {
               Add Summary
             </Button>
           </div>
-
-          <form onSubmit={uploadImage}>
-            <input
-              type="file"
-              onChange={(e) => {
-                setFile(e.currentTarget?.files?.[0] ?? null);
-              }}
-            />
-
-            <Button disabled={!file} type="submit" variant="outline" size="sm">
-              Upload Image
-            </Button>
-          </form>
 
           <FoodSummaryTable
             data={
@@ -321,6 +314,19 @@ const foodSummary: FC = () => {
                       </FormItem>
                     )}
                   />
+
+                  <div {...getRootProps()} className="dropzone-container">
+                    <input {...getInputProps()} />
+                    {isDragActive ? (
+                      <div className="flex h-full items-center justify-center font-semibold">
+                        <p>Drop the file here...</p>
+                      </div>
+                    ) : (
+                      <div className="flex h-full items-center justify-center font-semibold">
+                        <p>Drag n drop file here, or click to select files</p>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 place-items-stretch gap-4">
                     <FormField
