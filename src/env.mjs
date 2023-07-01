@@ -22,11 +22,6 @@ const server = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   BUCKET_NAME: z.string(),
-  S3_REGION: z.string(),
-  S3_ACCESS_KEY_ID: z.string(),
-  S3_SECRET_ACCESS_KEY: z.string(),
-  S3_URL: z.string(),
-  S3_LOCAL: z.string().optional(),
 });
 
 /**
@@ -36,7 +31,6 @@ const server = z.object({
  */
 const client = z.object({
   // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
-  NEXT_PUBLIC_S3_BUCKET_NAME: z.string(),
 });
 
 /**
@@ -51,14 +45,7 @@ const processEnv = {
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-
   BUCKET_NAME: process.env.BUCKET_NAME,
-  S3_REGION: process.env.S3_REGION,
-  S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
-  S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
-  S3_URL: process.env.S3_URL,
-  S3_LOCAL: process.env.S3_LOCAL,
-  NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
 };
 
 // Don't touch the part below
