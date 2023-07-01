@@ -94,6 +94,7 @@ const foodSummary: FC = () => {
   const [foodOpenModal, setFoodOpenModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [fileKey, setFileKey] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const { data: company } = api.company.getCompany.useQuery();
   const { data: foodSummaries, isFetching: fetchingFoodSummaries } =
@@ -104,27 +105,26 @@ const foodSummary: FC = () => {
     companyId: company?.id ?? "",
   });
   const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
-  const { mutateAsync: fetchPresignedUrls } =
+  const { mutateAsync: fetchPresignedUrls, isLoading: fetchingPresignedUrl } =
     api.s3.getStandardUploadPresignedUrl.useMutation();
 
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
-    useDropzone({
-      maxFiles: 1,
-      maxSize: 5 * 2 ** 30, // roughly 5GB
-      multiple: false,
-      onDropAccepted: (files, _event) => {
-        const uuid = generateRandomString(50);
+  const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
+    maxFiles: 1,
+    maxSize: 5 * 2 ** 30, // roughly 5GB
+    multiple: false,
+    onDropAccepted: (files, _event) => {
+      const uuid = generateRandomString(50);
 
-        fetchPresignedUrls({
-          key: uuid,
+      fetchPresignedUrls({
+        key: uuid,
+      })
+        .then((url) => {
+          setPresignedUrl(url);
+          setFileKey(uuid);
         })
-          .then((url) => {
-            setPresignedUrl(url);
-            setFileKey(uuid);
-          })
-          .catch((err) => console.error(err));
-      },
-    });
+        .catch((err) => console.error(err));
+    },
+  });
 
   const handleClickOutside = () => {
     showCalendar && setShowCalendar(false);
@@ -168,6 +168,10 @@ const foodSummary: FC = () => {
         membersBroughtFood: [],
         extraMembers: [],
       });
+      acceptedFiles.length = 0;
+      setPresignedUrl(null);
+      setFileKey(null);
+      setSubmitting(false);
     },
 
     onError: (error) => {
@@ -175,11 +179,14 @@ const foodSummary: FC = () => {
         title: "Error",
         description: error.message,
       });
+
+      setSubmitting(false);
     },
   });
 
   const onSubmit = async (data: FoodFormValues) => {
     try {
+      setSubmitting(true);
       if (acceptedFiles.length > 0 && presignedUrl !== null) {
         const file = acceptedFiles[0] as File;
         await axios.put(presignedUrl, file.slice(), {
@@ -199,6 +206,7 @@ const foodSummary: FC = () => {
         fileKey: fileKey ?? null,
       });
     } catch (err) {
+      setSubmitting(false);
       console.error(err);
     }
   };
@@ -276,7 +284,7 @@ const foodSummary: FC = () => {
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "ml-0 w-[240px] pl-3 text-left font-normal",
+                              "ml-0 w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground",
                             )}
                             onClick={() => {
@@ -315,17 +323,79 @@ const foodSummary: FC = () => {
                     )}
                   />
 
-                  <div {...getRootProps()} className="dropzone-container">
-                    <input {...getInputProps()} />
-                    {isDragActive ? (
-                      <div className="flex h-full items-center justify-center font-semibold">
-                        <p>Drop the file here...</p>
+                  <div
+                    className="flex w-full items-center justify-center"
+                    {...getRootProps()}
+                  >
+                    <label
+                      htmlFor="dropzone-file"
+                      className="dark:hover:bg-bray-800 flex h-44 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                    >
+                      <div className="flex flex-col items-center justify-center pb-6 pt-5">
+                        {acceptedFiles.length > 0 ? (
+                          acceptedFiles.map((file) => {
+                            return (
+                              <div className="flex flex-col items-center justify-center">
+                                <svg
+                                  aria-hidden="true"
+                                  className="mb-3 h-10 w-10 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                  ></path>
+                                </svg>
+                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                  <span className="font-semibold">
+                                    {file.name}
+                                  </span>{" "}
+                                  ({file.size} bytes)
+                                </p>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <>
+                            <svg
+                              aria-hidden="true"
+                              className="mb-3 h-10 w-10 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              ></path>
+                            </svg>
+                            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                              <span className="font-semibold">
+                                Click to upload reciept
+                              </span>{" "}
+                              or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              SVG, PNG, JPG or GIF (MAX. 800x400px)
+                            </p>
+                          </>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex h-full items-center justify-center font-semibold">
-                        <p>Drag n drop file here, or click to select files</p>
-                      </div>
-                    )}
+                      <input
+                        {...getInputProps()}
+                        id="dropzone-file"
+                        type="file"
+                        className="hidden"
+                      />
+                    </label>
                   </div>
 
                   <div className="grid grid-cols-2 place-items-stretch gap-4">
@@ -498,7 +568,11 @@ const foodSummary: FC = () => {
                   <div className="flex w-full justify-end">
                     <Button
                       type="submit"
-                      disabled={createFoodSummary.isLoading}
+                      disabled={
+                        createFoodSummary.isLoading ||
+                        fetchingPresignedUrl ||
+                        submitting
+                      }
                       variant="outline"
                       size="sm"
                     >
