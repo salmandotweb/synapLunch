@@ -99,6 +99,8 @@ model Member {
   @@unique([email, companyId])
 }
 
+
+
 model Topup {
   id              String         @id @default(cuid())
   date            DateTime  
@@ -128,7 +130,7 @@ model FoodSummary {
   totalCurriesAmount    Int
   reciept        String?
   extraMembers    Int?           @default(0)
-  extraMembersRelatedTo Member[]   @relation("extraMembersRelatedTo")
+  extraMembersRelatedTo Member[]   @relation("extraMembersRelatedTo") 
   totalAmount     Int
   company         Company        @relation("FoodSummaryCompany", fields: [companyId], references: [id])
   companyId       String

@@ -131,16 +131,41 @@ export const foodSummaryRouter = createTRPCRouter({
 
       await updateCompanyBalance;
 
-      const updateMemberBalancePromises = members.map((member) => {
-        return ctx.prisma.member.update({
-          where: {
-            id: member.id,
-          },
+      const extraMembers = input.extraMembers?.map((member) => {
+        return {
+          id: member.relatedTo,
+          numberOfMembers: member.numberOfMembers,
+        };
+      });
 
-          data: {
-            balance: member.balance - roundedAmountToBeDeducted,
-          },
+      const updateMemberBalancePromises = members.map((member) => {
+        const extraMember = extraMembers?.find((extraMember) => {
+          return extraMember.id === member.id;
         });
+
+        if (extraMember) {
+          return ctx.prisma.member.update({
+            where: {
+              id: member.id,
+            },
+
+            data: {
+              balance:
+                member.balance -
+                roundedAmountToBeDeducted * Number(extraMember.numberOfMembers),
+            },
+          });
+        } else {
+          return ctx.prisma.member.update({
+            where: {
+              id: member.id,
+            },
+
+            data: {
+              balance: member.balance - roundedAmountToBeDeducted,
+            },
+          });
+        }
       });
 
       await Promise.all(updateMemberBalancePromises);
@@ -158,6 +183,7 @@ export const foodSummaryRouter = createTRPCRouter({
 
         include: {
           membersDidntBringFood: true,
+          extraMembersRelatedTo: true,
         },
       });
 
@@ -182,6 +208,10 @@ export const foodSummaryRouter = createTRPCRouter({
 
       await updateCompanyBalance;
 
+      const totalMembersCount =
+        Number(getSummary?.extraMembers) +
+        Number(getSummary?.membersDidntBringFood.length);
+
       // update members balance who did not bring food
       const updateMemberBalancePromises = getSummary?.membersDidntBringFood.map(
         (member) => {
@@ -192,9 +222,7 @@ export const foodSummaryRouter = createTRPCRouter({
 
             data: {
               balance: {
-                increment:
-                  getSummary?.totalCurriesAmount /
-                  getSummary.membersDidntBringFood.length,
+                increment: getSummary?.totalCurriesAmount / totalMembersCount,
               },
             },
           });
