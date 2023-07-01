@@ -27,5 +27,8 @@ const config = {
   experimental: {
     esmExternals: false, // THIS IS THE FLAG THAT MATTERS
   },
+  images: {
+    domains: ["nexlunch.s3.us-east-1.amazonaws.com"],
+  },
 };
 export default config;

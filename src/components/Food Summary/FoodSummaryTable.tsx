@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "~/ui/table";
 import { DataTablePagination } from "../Data Table/data-table-pagination";
+import { DataTableRowActions } from "../Data Table/data-table-row-actions";
 import { DataTableToolbar } from "../Data Table/data-table-toolbar";
 
 interface DataTableProps<TData, TValue> {

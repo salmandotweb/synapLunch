@@ -17,6 +17,23 @@ export const foodSummaryRouter = createTRPCRouter({
       });
     }),
 
+  getFoodSummaryById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (!input.id) return null;
+
+      return ctx.prisma.foodSummary.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          membersBroughtFood: true,
+          membersDidntBringFood: true,
+          extraMembersRelatedTo: true,
+        },
+      });
+    }),
+
   createFoodSummary: protectedProcedure
     .input(
       z.object({
@@ -87,13 +104,17 @@ export const foodSummaryRouter = createTRPCRouter({
         },
       });
 
+      const noOfEntireMembers = sumOfExtraMembers
+        ? members.length + sumOfExtraMembers
+        : members.length;
+
       const roundedTotalAmount = Math.round(Number(input.totalAmount));
 
       const totalBreadAmount = Number(input.breadsAmount);
 
       const remainingAmount = roundedTotalAmount - totalBreadAmount;
 
-      const amountToBeDeducted = remainingAmount / members.length;
+      const amountToBeDeducted = remainingAmount / noOfEntireMembers;
 
       const roundedAmountToBeDeducted = Math.round(amountToBeDeducted);
 

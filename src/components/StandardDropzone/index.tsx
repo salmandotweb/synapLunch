@@ -46,10 +46,7 @@ export const StandardDropzone = () => {
         .put(presignedUrl, file.slice(), {
           headers: { "Content-Type": file.type },
         })
-        .then((response) => {
-          console.log(response);
-          console.log("Successfully uploaded ", file.name);
-        })
+        .then((response) => {})
         .catch((err) => console.error(err));
       setSubmitDisabled(true);
     }

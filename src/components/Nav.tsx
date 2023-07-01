@@ -61,11 +61,6 @@ export default function NavBar({ path }: { path: string }) {
     setMounted(true);
   }, []);
 
-  // function handleThemeBtnCLick() {
-  //   // console.log("ok")
-  //   themeIcon === "dark" ? setThemeIcon("light") : setThemeIcon("dark");
-  // }
-
   return (
     <div className="flex h-full min-h-full w-full flex-col items-center justify-start pt-6">
       <div className="flex flex-col gap-4">

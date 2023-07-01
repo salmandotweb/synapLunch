@@ -3,9 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { z } from "zod";
 
-import { Badge } from "~/ui/badge";
-import { Checkbox } from "~/ui/checkbox";
-import { labels, priorities, statuses } from "./data";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { DataTableRowActions } from "./data-table-row-actions";
 
