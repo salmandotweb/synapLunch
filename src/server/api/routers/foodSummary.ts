@@ -1,7 +1,24 @@
+import { S3Client } from "@aws-sdk/client-s3";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { TRPCError } from "@trpc/server";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { env } from "~/env.mjs";
 import { foodFormSchema } from "~/pages/food-summary";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+
+const UPLOAD_MAX_FILE_SIZE = 1000000;
+
+const s3Client = new S3Client({
+  region: "us-east-1",
+  endpoint: "http://localhost:9000",
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: "S3RVER",
+    secretAccessKey: "S3RVER",
+  },
+});
 
 export const foodSummaryRouter = createTRPCRouter({
   getAllFoodSummary: protectedProcedure
@@ -181,5 +198,46 @@ export const foodSummaryRouter = createTRPCRouter({
       await Promise.all(updateMemberBalancePromises || []);
 
       return true;
+    }),
+  createPresignedUrl: protectedProcedure
+    .input(z.object({ foodSummaryId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const course = await ctx.prisma.foodSummary.findUnique({
+        where: {
+          id: input.foodSummaryId,
+        },
+      });
+
+      if (!course) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Food Summary not found",
+        });
+      }
+
+      const imageId = uuidv4();
+      await ctx.prisma.receipt.create({
+        data: {
+          date: new Date(),
+          receipt: imageId,
+          FoodSummary: {
+            connect: {
+              id: input.foodSummaryId,
+            },
+          },
+        },
+      });
+
+      return createPresignedPost(s3Client, {
+        Bucket: env.NEXT_PUBLIC_S3_BUCKET_NAME,
+        Key: imageId,
+        Fields: {
+          key: imageId,
+        },
+        Conditions: [
+          ["starts-with", "$Content-Type", "image/"],
+          ["content-length-range", 0, UPLOAD_MAX_FILE_SIZE],
+        ],
+      });
     }),
 });

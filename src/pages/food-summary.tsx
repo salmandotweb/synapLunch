@@ -10,7 +10,6 @@ import { z } from "zod";
 
 import { api } from "~/utils/api";
 import { cn } from "~/utils/cn";
-import { UploadButton } from "~/utils/uploadthing";
 import { useZodForm } from "~/utils/zod-form";
 import { columns } from "~/components/Data Table/columns";
 import { FoodSummaryTable } from "~/components/Food Summary/FoodSummaryTable";
@@ -76,10 +75,38 @@ export const foodFormSchema = z.object({
 
 type FoodFormValues = z.infer<typeof foodFormSchema>;
 
+async function uploadFileToS3({
+  getPresignedUrl,
+  file,
+}: {
+  getPresignedUrl: () => Promise<{
+    url: string;
+    fields: Record<string, string>;
+  }>;
+  file: File;
+}) {
+  const { url, fields } = await getPresignedUrl();
+  const data: Record<string, any> = {
+    ...fields,
+    "Content-Type": file.type,
+    file,
+  };
+  const formData = new FormData();
+  for (const name in data) {
+    formData.append(name, data[name]);
+  }
+
+  await fetch(url, {
+    method: "POST",
+    body: formData,
+  });
+}
+
 const foodSummary: FC = () => {
   const ref = useRef(null);
   const [foodOpenModal, setFoodOpenModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   const { data: company } = api.company.getCompany.useQuery();
   const { data: foodSummaries, isFetching: fetchingFoodSummaries } =
@@ -89,6 +116,9 @@ const foodSummary: FC = () => {
   const { data: members } = api.member.getTeamMembers.useQuery({
     companyId: company?.id ?? "",
   });
+
+  const createPresignedUrlMutation =
+    api.foodSummary.createPresignedUrl.useMutation();
 
   const handleClickOutside = () => {
     showCalendar && setShowCalendar(false);
@@ -155,6 +185,19 @@ const foodSummary: FC = () => {
     });
   };
 
+  const uploadImage = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!file) return;
+    await uploadFileToS3({
+      getPresignedUrl: () =>
+        createPresignedUrlMutation.mutateAsync({
+          foodSummaryId: "cljfkt2dv0000mi08dysbkvbq",
+        }),
+      file,
+    });
+    setFile(null);
+  };
+
   return (
     <Layout emoji="🎐" description="Team">
       <div className="relative flex h-full w-full flex-col items-center justify-center p-8">
@@ -172,6 +215,19 @@ const foodSummary: FC = () => {
               Add Summary
             </Button>
           </div>
+
+          <form onSubmit={uploadImage}>
+            <input
+              type="file"
+              onChange={(e) => {
+                setFile(e.currentTarget?.files?.[0] ?? null);
+              }}
+            />
+
+            <Button disabled={!file} type="submit" variant="outline" size="sm">
+              Upload Image
+            </Button>
+          </form>
 
           <FoodSummaryTable
             data={
@@ -265,16 +321,6 @@ const foodSummary: FC = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-
-                  <UploadButton
-                    endpoint="imageUploader"
-                    onClientUploadComplete={(res) => {
-                      alert("Upload complete!");
-                    }}
-                    onUploadError={(error: Error) => {
-                      alert(`ERROR! ${error.message}`);
-                    }}
                   />
 
                   <div className="grid grid-cols-2 place-items-stretch gap-4">
