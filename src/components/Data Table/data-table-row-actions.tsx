@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { format, set } from "date-fns";
-import { Eye, MoreHorizontal, Trash } from "lucide-react";
+import { Eye, MoreHorizontal, Trash, View } from "lucide-react";
 import { z } from "zod";
 
 import { api } from "~/utils/api";
@@ -50,7 +50,7 @@ export function DataTableRowActions<TData>({
   });
 
   const { data: recieptUrl } = api.s3.getObjectUrl.useQuery({
-    key: foodSummary?.reciept || "",
+    key: foodSummary?.reciept ?? "",
   });
 
   const deleteFoodSummary = api.foodSummary.deleteFoodSummary.useMutation({
@@ -92,7 +92,7 @@ export function DataTableRowActions<TData>({
               setSelectedRowId(row.original?.id ?? "");
             }}
           >
-            <Trash className="text-muted-foreground/70 mr-2 h-3.5 w-3.5" />
+            <Eye className="text-muted-foreground/70 mr-2 h-3.5 w-3.5" />
             View
           </DropdownMenuItem>
           <DropdownMenuItem
