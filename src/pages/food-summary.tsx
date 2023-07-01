@@ -43,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/ui/select";
-import "@uploadthing/react/styles.css";
 
 export const foodFormSchema = z.object({
   date: z.date({
