@@ -29,7 +29,6 @@ export const foodSummaryRouter = createTRPCRouter({
         include: {
           membersBroughtFood: true,
           membersDidntBringFood: true,
-          extraMembersRelatedTo: true,
         },
       });
     }),
@@ -44,32 +43,25 @@ export const foodSummaryRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const totalExtraMembers = input.extraMembers?.map((member) => {
-        return member.numberOfMembers;
-      });
+      const extraMembers =
+        input.extraMembers?.map((member) => ({
+          id: member.relatedTo,
+          numberOfMembers: member.numberOfMembers,
+        })) || [];
 
-      const sumOfExtraMembers = totalExtraMembers?.reduce(
-        (accumulator, currentValue) => accumulator + parseInt(currentValue),
-        0,
-      );
-
-      const extraMembersRelatedTo = input.extraMembers?.map((member) => {
-        return member.relatedTo;
-      });
-
-      const foodSummary = ctx.prisma.foodSummary.create({
+      const foodSummary = await ctx.prisma.foodSummary.create({
         data: {
           date: input.date,
           totalBreadsAmount: Number(input.breadsAmount),
           totalCurriesAmount: Number(input.curriesAmount),
           reciept: input.fileKey,
-          extraMembers: sumOfExtraMembers,
-          extraMembersRelatedTo: {
-            connect: extraMembersRelatedTo?.map((memberId) => {
-              return {
-                id: memberId,
-              };
-            }),
+          extraMembers: {
+            createMany: {
+              data: extraMembers.map((extraMember) => ({
+                noOfPeople: Number(extraMember.numberOfMembers),
+                memberRelatedToId: extraMember.id,
+              })),
+            },
           },
           totalAmount: Number(input.totalAmount),
           company: {
@@ -78,97 +70,90 @@ export const foodSummaryRouter = createTRPCRouter({
             },
           },
           membersBroughtFood: {
-            connect: input.membersBroughtFood?.map((memberId) => {
-              return {
-                id: memberId,
-              };
-            }),
+            connect: input.membersBroughtFood?.map((memberId) => ({
+              id: memberId,
+            })),
           },
           membersDidntBringFood: {
-            connect: input.membersDidNotBringFood.map((memberId) => {
-              return {
-                id: memberId,
-              };
-            }),
+            connect: input.membersDidNotBringFood.map((memberId) => ({
+              id: memberId,
+            })),
           },
         },
       });
 
-      const members = await ctx.prisma.member.findMany({
-        where: {
-          id: {
-            in: input.membersDidNotBringFood,
-          },
-
-          companyId: input.companyId,
-        },
-      });
-
-      const noOfEntireMembers = sumOfExtraMembers
-        ? members.length + sumOfExtraMembers
-        : members.length;
-
-      const roundedTotalAmount = Math.round(Number(input.totalAmount));
-
-      const totalBreadAmount = Number(input.breadsAmount);
-
-      const remainingAmount = roundedTotalAmount - totalBreadAmount;
-
-      const amountToBeDeducted = remainingAmount / noOfEntireMembers;
-
-      const roundedAmountToBeDeducted = Math.round(amountToBeDeducted);
-
-      const updateCompanyBalance = ctx.prisma.company.update({
+      await ctx.prisma.company.update({
         where: {
           id: input.companyId,
         },
         data: {
           balance: {
-            decrement: totalBreadAmount,
+            decrement: Number(input.breadsAmount),
           },
         },
       });
 
-      await updateCompanyBalance;
+      const membersDidNotBringFoodCount = input.membersDidNotBringFood.length;
+      const totalExtraMembers = extraMembers.reduce(
+        (acc, curr) => acc + Number(curr.numberOfMembers),
+        0,
+      );
+      const totalMembers = membersDidNotBringFoodCount + totalExtraMembers || 0;
+      const totalAmountWithoutBreads =
+        Number(input.totalAmount) - Number(input.breadsAmount);
+      const amountToBeDeductedFromEachMember =
+        totalAmountWithoutBreads / totalMembers;
 
-      const extraMembers = input.extraMembers?.map((member) => {
-        return {
-          id: member.relatedTo,
-          numberOfMembers: member.numberOfMembers,
-        };
-      });
+      const updateMemberBalancePromises = input.membersDidNotBringFood.map(
+        (memberId) => {
+          const extraMember = extraMembers.find(
+            (extraMember) => extraMember.id === memberId,
+          );
+          const withExtraMembers = extraMember
+            ? Number(extraMember.numberOfMembers) + 1
+            : 1;
 
-      const updateMemberBalancePromises = members.map((member) => {
-        const extraMember = extraMembers?.find((extraMember) => {
-          return extraMember.id === member.id;
-        });
-
-        if (extraMember) {
           return ctx.prisma.member.update({
             where: {
-              id: member.id,
+              id: memberId,
             },
-
             data: {
-              balance:
-                member.balance -
-                roundedAmountToBeDeducted * Number(extraMember.numberOfMembers),
+              balance: {
+                decrement: Math.round(
+                  amountToBeDeductedFromEachMember * Number(withExtraMembers),
+                ),
+              },
             },
           });
-        } else {
-          return ctx.prisma.member.update({
-            where: {
-              id: member.id,
-            },
-
-            data: {
-              balance: member.balance - roundedAmountToBeDeducted,
-            },
-          });
-        }
-      });
+        },
+      );
 
       await Promise.all(updateMemberBalancePromises);
+
+      const updateMembersWhoBroughtPromises =
+        input.membersBroughtFood?.map((memberId) => {
+          const extraMember = extraMembers.find(
+            (extraMember) => extraMember.id === memberId,
+          );
+
+          if (extraMember) {
+            return ctx.prisma.member.update({
+              where: {
+                id: memberId,
+              },
+              data: {
+                balance: {
+                  decrement: Math.round(
+                    amountToBeDeductedFromEachMember *
+                      Number(extraMember.numberOfMembers),
+                  ),
+                },
+              },
+            });
+          }
+        }) || [];
+
+      await Promise.all(updateMembersWhoBroughtPromises);
 
       return foodSummary;
     }),
@@ -183,9 +168,20 @@ export const foodSummaryRouter = createTRPCRouter({
 
         include: {
           membersDidntBringFood: true,
-          extraMembersRelatedTo: true,
+          membersBroughtFood: true,
+          extraMembers: true,
         },
       });
+
+      const deleteExtraMembers = getSummary?.extraMembers.map((member) => {
+        return ctx.prisma.extraMembers.delete({
+          where: {
+            id: member.id,
+          },
+        });
+      });
+
+      await Promise.all(deleteExtraMembers || []);
 
       const deleteSummary = ctx.prisma.foodSummary.delete({
         where: {
@@ -208,28 +204,60 @@ export const foodSummaryRouter = createTRPCRouter({
 
       await updateCompanyBalance;
 
-      const totalMembersCount =
-        Number(getSummary?.extraMembers) +
-        Number(getSummary?.membersDidntBringFood.length);
+      const totalAmountWithoutBreads =
+        Number(getSummary?.totalAmount) - Number(getSummary?.totalBreadsAmount);
 
-      // update members balance who did not bring food
-      const updateMemberBalancePromises = getSummary?.membersDidntBringFood.map(
+      const updateMembersBalance = getSummary?.membersDidntBringFood.map(
         (member) => {
+          const extraMember = getSummary?.extraMembers.find(
+            (extraMember) => extraMember.memberRelatedToId === member.id,
+          );
+
+          const withExtraMembers = extraMember
+            ? Number(extraMember.noOfPeople) + 1
+            : 1;
+
           return ctx.prisma.member.update({
             where: {
               id: member.id,
             },
-
             data: {
               balance: {
-                increment: getSummary?.totalCurriesAmount / totalMembersCount,
+                increment: Math.round(
+                  totalAmountWithoutBreads / withExtraMembers,
+                ),
               },
             },
           });
         },
       );
 
-      await Promise.all(updateMemberBalancePromises || []);
+      await Promise.all(updateMembersBalance || []);
+
+      const updateMembersWhoBroughtBalance = getSummary?.membersBroughtFood.map(
+        (member) => {
+          const extraMember = getSummary?.extraMembers.find(
+            (extraMember) => extraMember.memberRelatedToId === member.id,
+          );
+
+          if (extraMember) {
+            return ctx.prisma.member.update({
+              where: {
+                id: member.id,
+              },
+              data: {
+                balance: {
+                  increment: Math.round(
+                    totalAmountWithoutBreads / extraMember.noOfPeople,
+                  ),
+                },
+              },
+            });
+          }
+        },
+      );
+
+      await Promise.all(updateMembersWhoBroughtBalance || []);
 
       return true;
     }),
