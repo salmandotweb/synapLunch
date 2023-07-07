@@ -165,7 +165,6 @@ export const foodSummaryRouter = createTRPCRouter({
         where: {
           id: input.id,
         },
-
         include: {
           membersDidntBringFood: true,
           membersBroughtFood: true,
@@ -173,15 +172,16 @@ export const foodSummaryRouter = createTRPCRouter({
         },
       });
 
-      const deleteExtraMembers = getSummary?.extraMembers.map((member) => {
-        return ctx.prisma.extraMembers.delete({
-          where: {
-            id: member.id,
-          },
-        });
-      });
+      const deleteExtraMembersPromises = getSummary?.extraMembers.map(
+        (member) =>
+          ctx.prisma.extraMembers.delete({
+            where: {
+              id: member.id,
+            },
+          }),
+      );
 
-      await Promise.all(deleteExtraMembers || []);
+      await Promise.all(deleteExtraMembersPromises || []);
 
       const deleteSummary = ctx.prisma.foodSummary.delete({
         where: {
@@ -207,15 +207,17 @@ export const foodSummaryRouter = createTRPCRouter({
       const totalAmountWithoutBreads =
         Number(getSummary?.totalAmount) - Number(getSummary?.totalBreadsAmount);
 
-      const updateMembersBalance = getSummary?.membersDidntBringFood.map(
-        (member) => {
+      const updateMembersBalancePromises =
+        getSummary?.membersDidntBringFood.map((member) => {
           const extraMember = getSummary?.extraMembers.find(
             (extraMember) => extraMember.memberRelatedToId === member.id,
           );
-
           const withExtraMembers = extraMember
             ? Number(extraMember.noOfPeople) + 1
             : 1;
+          const amountToIncrement = Math.round(
+            totalAmountWithoutBreads / withExtraMembers,
+          );
 
           return ctx.prisma.member.update({
             where: {
@@ -223,42 +225,40 @@ export const foodSummaryRouter = createTRPCRouter({
             },
             data: {
               balance: {
-                increment: Math.round(
-                  totalAmountWithoutBreads / withExtraMembers,
-                ),
+                increment: amountToIncrement,
               },
             },
           });
-        },
-      );
+        });
 
-      await Promise.all(updateMembersBalance || []);
+      await Promise.all(updateMembersBalancePromises || []);
 
-      const updateMembersWhoBroughtBalance = getSummary?.membersBroughtFood.map(
-        (member) => {
+      const updateMembersWhoBroughtBalancePromises =
+        getSummary?.membersBroughtFood.map((member) => {
           const extraMember = getSummary?.extraMembers.find(
             (extraMember) => extraMember.memberRelatedToId === member.id,
           );
 
           if (extraMember) {
+            const amountToIncrement = Math.round(
+              totalAmountWithoutBreads / extraMember.noOfPeople,
+            );
+
             return ctx.prisma.member.update({
               where: {
                 id: member.id,
               },
               data: {
                 balance: {
-                  increment: Math.round(
-                    totalAmountWithoutBreads / extraMember.noOfPeople,
-                  ),
+                  increment: amountToIncrement,
                 },
               },
             });
           }
-        },
-      );
+        });
 
-      await Promise.all(updateMembersWhoBroughtBalance || []);
+      await Promise.all(updateMembersWhoBroughtBalancePromises || []);
 
-      return true;
+      return totalAmountWithoutBreads;
     }),
 });
