@@ -83,7 +83,7 @@ model Member {
   name            String
   email           String
   designation     String?
-  role            String         @default("user")
+  role            String         @default("member")
   company         Company        @relation(fields: [companyId], references: [id])
   companyId       String
   deposits        Deposit[]
