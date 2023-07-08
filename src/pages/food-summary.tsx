@@ -1,4 +1,4 @@
-import React, { FC, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
@@ -50,27 +50,54 @@ export const foodFormSchema = z.object({
   date: z.date({
     required_error: "Date is required",
   }),
-  breadsAmount: z.string({
-    required_error: "Breads Amount is required",
-  }),
-  curriesAmount: z.string({
-    required_error: "Curries Amount is required",
-  }),
+  breadsAmount: z
+    .string({
+      required_error: "Breads Amount is required",
+    })
+    .nonempty({
+      message: "Breads Amount is required",
+    })
+    .refine((val) => parseInt(val) >= 0, {
+      message: "Breads Amount can't be negative",
+    }),
+  curriesAmount: z
+    .string({
+      required_error: "Curries Amount is required",
+    })
+    .nonempty({
+      message: "Curries Amount is required",
+    })
+    .refine((val) => parseInt(val) >= 0, {
+      message: "Curries Amount can't be negative",
+    }),
+  extraStuff: z.string().optional(),
   extraMembers: z
     .array(
       z.object({
-        numberOfMembers: z.string({
-          required_error: "Number of Members is required",
-        }),
-        relatedTo: z.string({
-          required_error: "Related To is required",
-        }),
+        numberOfMembers: z
+          .string({
+            required_error: "Number of Members is required",
+          })
+          .nonempty({
+            message: "Number of Members is required",
+          }),
+        relatedTo: z
+          .string({
+            required_error: "Related To is required",
+          })
+          .nonempty({
+            message: "Related To is required",
+          }),
       }),
     )
     .optional(),
-  totalAmount: z.string({
-    required_error: "Total Ammount is required",
-  }),
+  totalAmount: z
+    .string({
+      required_error: "Total Ammount is required",
+    })
+    .nonempty({
+      message: "Total Ammount is required",
+    }),
   membersBroughtFood: z.array(z.string()).optional(),
 });
 
@@ -210,6 +237,24 @@ const foodSummary: FC = () => {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    const breadsAmount = form.watch("breadsAmount");
+    const curriesAmount = form.watch("curriesAmount");
+    const extraStuff = form.watch("extraStuff") ?? 0;
+
+    if (breadsAmount && curriesAmount) {
+      const totalAmount =
+        Number(breadsAmount) + Number(curriesAmount) + Number(extraStuff);
+      form.setValue("totalAmount", totalAmount.toString());
+    } else {
+      form.setValue("totalAmount", "");
+    }
+  }, [
+    form.watch("breadsAmount"),
+    form.watch("curriesAmount"),
+    form.watch("extraStuff"),
+  ]);
 
   return (
     <Layout emoji="🎐" description="Team">
@@ -435,11 +480,30 @@ const foodSummary: FC = () => {
                     />
                     <FormField
                       control={form.control}
+                      name="extraStuff"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder="Extra Stuff Amount"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="totalAmount"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Total Amount" {...field} />
+                            <Input
+                              placeholder="Total Amount"
+                              {...field}
+                              disabled
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
