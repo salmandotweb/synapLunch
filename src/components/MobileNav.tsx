@@ -2,13 +2,31 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useKBar } from "kbar";
 import { useTheme } from "next-themes";
-import { FiCommand, FiHome, FiMoon, FiSun } from "react-icons/fi";
+import { BiFoodMenu } from "react-icons/bi";
+import { FiCommand, FiHome, FiMoon, FiSettings, FiSun } from "react-icons/fi";
+import { RiTeamLine } from "react-icons/ri";
 
 const NavbarItems = [
   {
     name: "Home",
     slug: "/",
     icon: FiHome,
+  },
+  {
+    name: "Food Summary",
+    slug: "/food-summary",
+    icon: BiFoodMenu,
+  },
+  {
+    name: "Team",
+    slug: "/team",
+    icon: RiTeamLine,
+  },
+  {
+    name: "Settings",
+    slug: "/settings/profile",
+    nestedSlug: "/settings/company",
+    icon: FiSettings,
   },
 ];
 
@@ -22,7 +40,7 @@ export default function MobileNavBar({ path }: { path: string }) {
 
   return (
     <div className="flex h-full min-h-full min-w-full items-center justify-center gap-4 overflow-x-scroll rounded-lg bg-zinc-500/50 py-1 shadow-xl dark:bg-zinc-800/50">
-      <div className="flex justify-evenly gap-4 pl-24">
+      <div className="flex justify-evenly gap-4">
         {NavbarItems.map((item, index) => {
           return (
             <button

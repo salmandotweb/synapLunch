@@ -153,6 +153,7 @@ export function DataTableRowActions<TData>({
                         {foodSummary?.totalCurriesAmount}
                       </Badge>
                     </div>
+
                     <div className="flex gap-1">
                       Total Amount:
                       <Badge variant="outline">
@@ -182,24 +183,21 @@ export function DataTableRowActions<TData>({
                       </div>
                     )}
                   </div>
-                  {foodSummary?.extraMembers !== 0 && (
-                    <>
-                      <div className="flex gap-1">
-                        Extra Members:
-                        <Badge variant="outline">
-                          {foodSummary?.extraMembers}
-                        </Badge>
-                      </div>
-                      <div>
-                        Extra Members related to:{" "}
-                        {foodSummary?.extraMembersRelatedTo?.map((member) => {
-                          return (
-                            <Badge variant="outline">{member?.name}</Badge>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
+                  {foodSummary?.extraMembers.length !== 0 &&
+                    foodSummary?.extraMembers?.map((member) => (
+                      <>
+                        <div className="flex gap-1">
+                          Extra Members:
+                          <Badge variant="outline">{member?.noOfPeople}</Badge>
+                        </div>
+                        <div>
+                          Extra Members related to:{" "}
+                          <Badge variant="outline">
+                            {member?.memberRelatedToId}
+                          </Badge>
+                        </div>
+                      </>
+                    ))}
                 </DialogDescription>
               </DialogHeader>
             )}

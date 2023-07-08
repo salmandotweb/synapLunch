@@ -126,6 +126,7 @@ model FoodSummary {
   date            DateTime  
   totalBreadsAmount     Int
   totalCurriesAmount    Int
+  totalExtraStuffAmount Int?
   reciept        String?
   extraMembers  ExtraMembers[]
   totalAmount     Int

@@ -29,6 +29,7 @@ export const foodSummaryRouter = createTRPCRouter({
         include: {
           membersBroughtFood: true,
           membersDidntBringFood: true,
+          extraMembers: true,
         },
       });
     }),
@@ -54,6 +55,7 @@ export const foodSummaryRouter = createTRPCRouter({
           date: input.date,
           totalBreadsAmount: Number(input.breadsAmount),
           totalCurriesAmount: Number(input.curriesAmount),
+          totalExtraStuffAmount: Number(input.extraStuff),
           reciept: input.fileKey,
           extraMembers: {
             createMany: {
