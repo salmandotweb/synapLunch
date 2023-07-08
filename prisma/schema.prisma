@@ -99,8 +99,6 @@ model Member {
   @@unique([email, companyId])
 }
 
-
-
 model Topup {
   id              String         @id @default(cuid())
   date            DateTime  
