@@ -13,7 +13,7 @@ export function UserAuthForm({ providers }: any) {
       <Button
         variant="outline"
         key={googleProvider.name}
-        className="flex items-center justify-center rounded-lg border py-2.5 duration-150 hover:bg-gray-50 active:bg-gray-100"
+        className="ml-0 flex items-center justify-center rounded-lg border py-2.5 duration-150 hover:bg-gray-50 active:bg-gray-100"
         onClick={() => {
           signIn(googleProvider.id, {
             callbackUrl: "/",

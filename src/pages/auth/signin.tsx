@@ -19,7 +19,11 @@ const AuthenticationPage = ({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   return (
     <>
-      <div className="container relative hidden h-[100vh] flex-col items-center justify-center bg-zinc-900 selection:bg-zinc-200/30 md:grid lg:max-w-none lg:px-0">
+      <div
+        className="
+        flex h-screen w-full flex-col items-center justify-center
+      "
+      >
         <UserAuthForm providers={providers} />
       </div>
     </>
