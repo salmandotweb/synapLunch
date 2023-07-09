@@ -32,7 +32,9 @@ const CardRow = ({
   return (
     <div className="grid w-full grid-cols-[1.4fr,2fr] gap-4">
       <div>
-        <Badge variant="secondary">{label}</Badge>
+        <Badge variant="secondary" className="whitespace-nowrap">
+          {label}
+        </Badge>
       </div>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         {value instanceof Date ? format(value, "PPP") : value}
@@ -65,12 +67,12 @@ const team: FC = ({}) => {
     <Layout emoji="🎐" description="Team">
       <div className="relative flex h-full w-full flex-col items-center justify-center p-8">
         <section className="prose prose-a:no-underline mb-12 mt-16 flex w-full flex-col justify-between gap-10 md:mt-0 lg:mt-0">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex w-full flex-col items-start justify-between gap-2 lg:flex-row lg:items-center">
             <h1 className="mb-3 text-2xl font-semibold leading-none text-zinc-900 dark:text-zinc-200">
               Team Members
             </h1>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-start gap-2">
               <Button
                 onClick={() => {
                   setAddCompanyTopUpModal(true);
@@ -96,7 +98,7 @@ const team: FC = ({}) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 place-items-stretch gap-6">
+          <div className="grid grid-cols-1  place-items-stretch gap-6 lg:grid-cols-3">
             {membersFetching ? (
               <>
                 <SkeletonCard />
@@ -105,7 +107,7 @@ const team: FC = ({}) => {
               </>
             ) : (
               members?.map((member) => (
-                <Card className="w-full">
+                <Card className="min-w-[300px]">
                   <CardHeader className="flex flex-row items-center justify-between gap-4">
                     <CardTitle>{member.name}</CardTitle>
                     <div>
