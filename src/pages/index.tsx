@@ -91,9 +91,9 @@ const Home: NextPage = () => {
                   <CreditCard className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">700</div>
+                  <div className="text-2xl font-bold">0</div>
                   <p className="text-muted-foreground text-xs">
-                    +200 since last month
+                    +0 since last month
                   </p>
                 </CardContent>
               </Card>
@@ -105,11 +105,9 @@ const Home: NextPage = () => {
                   <Activity className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {Math.round(2350 / 7)}
-                  </div>
+                  <div className="text-2xl font-bold">{Math.round(0)}</div>
                   <p className="text-muted-foreground text-xs">
-                    +200 since last month
+                    +0 since last month
                   </p>
                 </CardContent>
               </Card>
