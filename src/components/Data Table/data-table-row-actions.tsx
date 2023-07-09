@@ -190,12 +190,6 @@ export function DataTableRowActions<TData>({
                           Extra Members:
                           <Badge variant="outline">{member?.noOfPeople}</Badge>
                         </div>
-                        <div>
-                          Extra Members related to:{" "}
-                          <Badge variant="outline">
-                            {member?.memberRelatedToId}
-                          </Badge>
-                        </div>
                       </>
                     ))}
                 </DialogDescription>
