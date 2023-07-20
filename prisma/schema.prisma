@@ -95,6 +95,7 @@ model Member {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   topups          Topup[]
+  active          Boolean        @default(true)
 
   @@unique([email, companyId])
 }

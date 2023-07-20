@@ -1,14 +1,15 @@
 import { FC, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { Member } from "@prisma/client";
 import { format } from "date-fns";
 import { GetSessionParams, getSession } from "next-auth/react";
 import { AiOutlineEdit, AiOutlineTeam } from "react-icons/ai";
 import { BsCashCoin } from "react-icons/bs";
+import { FaRegEye } from "react-icons/fa";
 
 import { api } from "~/utils/api";
 import CashDepositForm from "~/components/Team/CashDepositForm";
 import MemberForm from "~/components/Team/MemberForm";
-import SkeletonCard from "~/components/Team/SkeletonCard";
 import TopupForm from "~/components/Team/TopupForm";
 import { useOnClickOutside } from "~/hooks/use-clickOutside";
 import Layout from "~/layout";
@@ -50,6 +51,8 @@ const team: FC = ({}) => {
     api.member.getTeamMembers.useQuery({
       companyId: companyId ?? "",
     });
+
+  const router = useRouter();
 
   const [memberOpenModal, setMemberOpenModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member>();
@@ -99,60 +102,71 @@ const team: FC = ({}) => {
           </div>
 
           <div className="grid grid-cols-1  place-items-stretch gap-6 lg:grid-cols-3">
-            {membersFetching ? (
-              <>
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-              </>
-            ) : (
-              members?.map((member) => (
-                <Card className="min-w-[300px]">
-                  <CardHeader className="flex flex-row items-center justify-between gap-4">
-                    <CardTitle>{member.name}</CardTitle>
-                    <div>
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setSelectedMember(member);
-                          setCashDepositOpenModal(true);
-                        }}
-                      >
-                        <BsCashCoin />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setSelectedMember(member);
-                          setMemberOpenModal(true);
-                        }}
-                      >
-                        <AiOutlineEdit />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="space-y-6">
-                      <CardRow label="Email" value={member.email} />
+            {members?.map((member) => (
+              <Card className="min-w-[300px]">
+                <CardHeader className="flex flex-row items-center justify-between gap-4">
+                  <CardTitle>{member.name}</CardTitle>
+                  <div>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        router.push(`/team/${member.id}`);
+                      }}
+                    >
+                      <FaRegEye />
+                    </Button>
+                    {member.active && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedMember(member);
+                            setCashDepositOpenModal(true);
+                          }}
+                        >
+                          <BsCashCoin />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedMember(member);
+                            setMemberOpenModal(true);
+                          }}
+                        >
+                          <AiOutlineEdit />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="space-y-6">
+                    <CardRow label="Email" value={member.email} />
+                    <CardRow
+                      label="Designation"
+                      value={member.designation ?? "-"}
+                    />
+                    <CardRow label="Role" value={member.role ?? "-"} />
+                    <CardRow
+                      label="Last Cash Deposit"
+                      value={
+                        member?.lastCashDeposit
+                          ? format(member.lastCashDeposit, "PPP")
+                          : "-"
+                      }
+                    />
+                    <CardRow label="Balance" value={member.balance ?? 0} />
+                    {!member.active && (
                       <CardRow
-                        label="Designation"
-                        value={member.designation ?? "-"}
+                        label="Status"
+                        value={!member.active ? "Deactivated" : ""}
                       />
-                      <CardRow label="Role" value={member.role ?? "-"} />
-                      <CardRow
-                        label="Last Cash Deposit"
-                        value={
-                          member?.lastCashDeposit
-                            ? format(member.lastCashDeposit, "PPP")
-                            : "-"
-                        }
-                      />
-                      <CardRow label="Balance" value={member.balance ?? 0} />
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+                    )}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </section>
 

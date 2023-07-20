@@ -138,6 +138,9 @@ export function DataTableRowActions<TData>({
                       alt="reciept"
                       height={300}
                       width={600}
+                      style={{
+                        objectFit: "contain",
+                      }}
                     />
                   )}
                   <div className="grid w-full grid-cols-3">

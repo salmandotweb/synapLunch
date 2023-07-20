@@ -19,6 +19,23 @@ export const memberRouter = createTRPCRouter({
       });
     }),
 
+  getTeamMember: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.member.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          foodSummariesBrought: true,
+          foodSummariesDidntBring: true,
+          deposits: true,
+          extraMembers: true,
+          topups: true,
+        },
+      });
+    }),
+
   createMember: protectedProcedure
     .input(z.object({ companyId: z.string(), ...memberFormSchema.shape }))
     .mutation(async ({ ctx, input }) => {
@@ -104,5 +121,31 @@ export const memberRouter = createTRPCRouter({
       });
 
       return { createdDeposit, updatedMember };
+    }),
+
+  deactivateMember: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.member.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          active: false,
+        },
+      });
+    }),
+
+  activateMember: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.member.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          active: true,
+        },
+      });
     }),
 });

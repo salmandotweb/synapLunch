@@ -222,7 +222,8 @@ const foodSummary: FC = () => {
       }
 
       const membersDidNotBringFood = members?.filter(
-        (member) => !data.membersBroughtFood?.includes(member.id),
+        (member) =>
+          !data.membersBroughtFood?.includes(member.id) && member.active,
       );
 
       createFoodSummary.mutate({
@@ -587,42 +588,49 @@ const foodSummary: FC = () => {
                           </FormDescription>
                         </div>
                         <div className="flex flex-wrap items-center gap-4">
-                          {members?.map((item) => (
-                            <FormField
-                              key={item.id}
-                              control={form.control}
-                              name="membersBroughtFood"
-                              render={({ field }) => {
-                                return (
-                                  <FormItem
-                                    key={item.id}
-                                    className="flex flex-row items-center space-x-3 space-y-0"
-                                  >
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(item.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([
-                                                ...(field.value || []),
-                                                item.id,
-                                              ])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== item.id,
-                                                ),
-                                              );
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="text-sm font-normal">
-                                      {item.name}
-                                    </FormLabel>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          ))}
+                          {members?.map((item) => {
+                            return (
+                              item.active && (
+                                <FormField
+                                  key={item.id}
+                                  control={form.control}
+                                  name="membersBroughtFood"
+                                  render={({ field }) => {
+                                    return (
+                                      <FormItem
+                                        key={item.id}
+                                        className="flex flex-row items-center space-x-3 space-y-0"
+                                      >
+                                        <FormControl>
+                                          <Checkbox
+                                            checked={field.value?.includes(
+                                              item.id,
+                                            )}
+                                            onCheckedChange={(checked) => {
+                                              return checked
+                                                ? field.onChange([
+                                                    ...(field.value || []),
+                                                    item.id,
+                                                  ])
+                                                : field.onChange(
+                                                    field.value?.filter(
+                                                      (value) =>
+                                                        value !== item.id,
+                                                    ),
+                                                  );
+                                            }}
+                                          />
+                                        </FormControl>
+                                        <FormLabel className="text-sm font-normal">
+                                          {item.name}
+                                        </FormLabel>
+                                      </FormItem>
+                                    );
+                                  }}
+                                />
+                              )
+                            );
+                          })}
                           <FormMessage />
                         </div>
                       </FormItem>

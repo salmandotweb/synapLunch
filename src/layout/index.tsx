@@ -26,9 +26,7 @@ export default function Layout({
     <div>
       <Head>
         <link rel="icon" href={`https://fmj.asrvd.me/${emoji}`}></link>
-        <title>
-          {currentRoute === "/" ? "Sal." : `Sal. // ${currentRoute.slice(1)}`}
-        </title>
+        <title>SynapLunch.</title>
         <meta name="description" content={description} />
         <meta name="theme-color" content="#27272a" />
         <meta property="og:site_name" content="Sal." />
